@@ -2,13 +2,13 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 contract DecentralizedId {
-    struct User {
+    struct Id {
         string id;
         bool isValid;
     }
 
     address public owner;
-    mapping(string => User) public users;
+    mapping(string => Id) public ids;
 
     modifier onlyOwner {
         require(
@@ -23,27 +23,27 @@ contract DecentralizedId {
     }
 
     function checkRegistered(string memory _id) internal view returns (bool) {
-        return users[_id].isValid;
+        return ids[_id].isValid;
     }
 
-    function registerUser(string memory _id) onlyOwner public {
+    function registerId(string memory _id) onlyOwner public {
         require(
             checkRegistered(_id) == false,
-            "Already registered user."
+            "Already registered ID."
         );
-        users[_id].id = _id;
-        users[_id].isValid = true;
+        ids[_id].id = _id;
+        ids[_id].isValid = true;
     }
 
-    function removeUser(string memory _id) onlyOwner external {
-        delete users[_id];
+    function removeId(string memory _id) onlyOwner external {
+        delete ids[_id];
     }
 
-    function getUser(string memory _id) external view returns (User memory){
+    function getId(string memory _id) external view returns (Id memory){
         require(
             checkRegistered(_id) == true,
-            "Invalid request for an unregistered user."
+            "Invalid request for an unregistered ID."
         );
-        return users[_id];
+        return ids[_id];
     }
 }

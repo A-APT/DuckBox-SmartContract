@@ -13,7 +13,7 @@ contract DecentralizedId {
     modifier onlyOwner {
         require(
             msg.sender == owner,
-            "This function is restricted to the contract's owner"
+            "This function is restricted to the contract's owner."
         );
         _;
     }
@@ -39,7 +39,7 @@ contract DecentralizedId {
         delete users[_id];
     }
 
-    function getUser(string memory _id) onlyOwner external view returns (User memory){
+    function getUser(string memory _id) external view returns (User memory){
         require(
             checkRegistered(_id) == true,
             "Invalid request for an unregistered user."

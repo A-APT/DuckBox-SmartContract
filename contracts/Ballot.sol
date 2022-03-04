@@ -2,6 +2,12 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 contract Ballot {
+    enum BallotStatus {
+        OPEN,
+        ONGOING,
+        FINISHED
+    }
+
     struct Voter {
         uint weight;
         bool voted;
@@ -13,13 +19,27 @@ contract Ballot {
         uint voteCount;
     }
 
+    modifier atFinished {
+        require(
+            status == BallotStatus.FINISHED,
+            "This function is restricted only at finished status."
+        );
+        _;
+    }
+
+    BallotStatus public status;
     address public chairperson; // or group
 
     mapping(address => Voter) public voters;
-    Candidate[] public candidates;
+    Candidate[] private candidates;
+
+    function getResult() atFinished external returns (Candidate[]) {
+        return candidates;
+    }
 
     /// Create new ballot
     constructor(bytes32[] memory _candidateNames) {
+        status = BallotStatus.OPEN;
         chairperson = msg.sender;
         voters[chairperson].weight = 1;
 

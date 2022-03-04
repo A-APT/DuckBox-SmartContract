@@ -6,16 +6,30 @@ contract Group{
         bool isValid;
     }
 
-    address public owner; //그룹을 만든 사람
+    address public owner; //group leader
+    Requester public groupInfo;
 
-    mapping(string => Requester) public requesters; //key: user account address, value: Requester
+    mapping(string => Requester) public requesters; //key: user did, value: Requester
 
-    constructor() {
+    constructor(string memory _ownerDid) {
         owner = msg.sender;
+        requesters[_ownerDid].count = 0;
+        requesters[_ownerDid].isValid = true;
+
+        groupInfo.count = 0;
+        groupInfo.isValid = false;
     }
 
-    //그룹에 가입을 요청하는 것
-    function requestMember(string memory _userDid) external{
+    modifier onlyValidGroup{
+        require(
+            groupInfo.isValid == true,
+            "This function is restricted to the Valid group"
+        );
+        _;
+    }
+
+    //Request to join a group
+    function requestMember(string memory _userDid) onlyValidGroup external{
         require(
             requesters[_userDid].count == 0,
             "Already request Member"
@@ -25,36 +39,48 @@ contract Group{
         requesters[_userDid].isValid = false;
     }
 
-    //상호인증
-    function approveMember(string memory _approver, string memory _requester) external returns(bool){
-        //상호인증하는 사람의 권한 확인
+    //mutual authentication
+    function approveMember(string memory _approverDid, string memory _requesterDid) onlyValidGroup external returns(bool){
+        //Check Approver Permissions
         require(
-            requesters[_approver].isValid == true,
+            requesters[_approverDid].isValid == true,
             "No permission"
         );
-        //이미 승인 되었는지 확인
+        //Check if requester is already a member of the group
         require(
-           requesters[_requester].isValid == false,
-            "Alreay group member"
+           requesters[_requesterDid].isValid == false,
+            "Already group member"
         );
         
-        requesters[_requester].count++;
+        requesters[_requesterDid].count++;
         
-        if(requesters[_requester].count>=2){
-            requesters[_requester].isValid = true;
+        if(requesters[_requesterDid].count>=2){
+            requesters[_requesterDid].isValid = true;
         }
-        return requesters[_requester].isValid;
+        return requesters[_requesterDid].isValid;
     }
 
-    function getVaild(string memory _requester) external view returns (bool){
-        return requesters[_requester].isValid;
-    }
+    //group authentication
+    function approveGroupAuthentication(string memory _approverDid) external returns(bool){
+        //Check if the group is already approved
+        require(
+           groupInfo.isValid == false,
+            "Already approved group"
+        );
 
-    function setVaild(string memory _requester, bool _isValid) external{
-        requesters[_requester].isValid = _isValid;
-    }
+        //Check for duplicate approvers
+        require(
+           requesters[_approverDid].isValid == false,
+            "can not approve"
+        );
+        
+        groupInfo.count++;
+        requesters[_approverDid].isValid = true;
+        
+        if(groupInfo.count>=2){
+            groupInfo.isValid = true;
+        }
 
-    function getCount(string memory _requester) external view returns (uint){
-        return requesters[_requester].count;
+        return groupInfo.isValid;
     }
 }

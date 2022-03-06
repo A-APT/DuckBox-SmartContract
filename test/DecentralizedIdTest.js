@@ -16,7 +16,7 @@ contract("DecentralizedId", function (accounts) {
     it("is_registerId_works_well", async () => {
         // arrange
         let instance = await decentralizedId.deployed();
-
+        
         // act, assert
         await instance.registerId(did);
         let id = await instance.ids(did);
@@ -44,12 +44,13 @@ contract("DecentralizedId", function (accounts) {
         // arrange
         let instance = await decentralizedId.deployed();
         let notOwner = accounts[1];
+        let owner = await instance.owner();
 
         // act
         const id = await instance.getId(did, {from: notOwner});
 
         // assert
-        assert.equal(id.id, did);
+        assert.equal(id.owner, owner);
         assert.equal(id.isValid, true);
     })
     it("is_removeId_works_well", async () => {

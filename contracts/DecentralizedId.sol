@@ -3,12 +3,13 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract DecentralizedId {
     struct Id {
-        string id;
+        // 공개키 넣기 (address) - did 주인의 address
+        address owner;
         bool isValid;
     }
 
     address public owner;
-    mapping(string => Id) public ids;
+    mapping(string => Id) public ids; 
 
     modifier onlyOwner {
         require(
@@ -18,6 +19,7 @@ contract DecentralizedId {
         _;
     }
 
+    //배포하는 사람이 호출하는 것이 constructor
     constructor() {
         owner = msg.sender;
     }
@@ -31,7 +33,7 @@ contract DecentralizedId {
             checkRegistered(_id) == false,
             "Already registered ID."
         );
-        ids[_id].id = _id;
+        ids[_id].owner = owner;
         ids[_id].isValid = true;
     }
 

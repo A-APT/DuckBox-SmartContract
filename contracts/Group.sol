@@ -1,14 +1,19 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 contract Group{
+    enum GroupStatus {
+        INVALID,
+        WAITING,
+        VALID
+    }
     struct Requester{
         uint count;
         bool isValid;
     }
 
     address public owner; //group leader
-    Requester public groupInfo;
-
+    GroupStatus public status;
+    
     mapping(string => Requester) public requesters; //key: user did, value: Requester
 
     constructor(string memory _ownerDid) {
@@ -16,13 +21,12 @@ contract Group{
         requesters[_ownerDid].count = 0;
         requesters[_ownerDid].isValid = true;
 
-        groupInfo.count = 0;
-        groupInfo.isValid = false;
+        status = GroupStatus.INVALID;
     }
 
     modifier onlyValidGroup{
         require(
-            groupInfo.isValid == true,
+            status == GroupStatus.VALID,
             "This function is restricted to the Valid group"
         );
         _;
@@ -61,10 +65,10 @@ contract Group{
     }
 
     //group authentication
-    function approveGroupAuthentication(string memory _approverDid) external returns(bool){
+    function approveGroupAuthentication(string memory _approverDid) external{
         //Check if the group is already approved
         require(
-           groupInfo.isValid == false,
+           status != GroupStatus.VALID,
             "Already approved group"
         );
 
@@ -74,13 +78,12 @@ contract Group{
             "can not approve"
         );
         
-        groupInfo.count++;
-        requesters[_approverDid].isValid = true;
-        
-        if(groupInfo.count>=2){
-            groupInfo.isValid = true;
+        if(status == GroupStatus.INVALID){
+            status = GroupStatus.WAITING;
+        }else if(status == GroupStatus.WAITING){
+            status = GroupStatus.VALID;
         }
 
-        return groupInfo.isValid;
+        requesters[_approverDid].isValid = true;
     }
 }

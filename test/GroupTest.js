@@ -20,8 +20,8 @@ contract("Group", function (accounts) {
         let valid = (await instance.requesters(_groupOwnerDid)).isValid;
         assert.equal(valid, true, "Group owner's valid is False");
 
-        let groupValid = (await instance.groupInfo()).isValid;
-        assert.equal(groupValid, false, "Group's Valid is True");
+        let status = await instance.status();
+        assert.equal(status, 0, "not equal status");
 
     });
 
@@ -48,8 +48,8 @@ contract("Group", function (accounts) {
 
         await instance.approveGroupAuthentication(_groupApprover1);
 
-        let groupCount = (await instance.groupInfo()).count;
-        assert.equal(groupCount, 1, "not equal count");
+        let status = await instance.status();
+        assert.equal(status, 1, "not equal status");
 
         let groupApprover1Valid = (await instance.requesters(_groupApprover1)).isValid;
         assert.equal(groupApprover1Valid, true, "not equal vaild");
@@ -69,8 +69,8 @@ contract("Group", function (accounts) {
 
         await instance.approveGroupAuthentication(_groupApprover2);
 
-        let groupValid = (await instance.groupInfo()).isValid;
-        assert.equal(groupValid, true, "not equal valid");
+        let status = await instance.status();
+        assert.equal(status, 2, "not equal status");
 
         let groupApprover2Valid = (await instance.requesters(_groupApprover2)).isValid;
         assert.equal(groupApprover2Valid, true, "not equal valid");

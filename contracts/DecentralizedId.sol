@@ -3,7 +3,6 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract DecentralizedId {
     struct Id {
-        // 공개키 넣기 (address) - did 주인의 address
         address owner;
         bool isValid;
     }

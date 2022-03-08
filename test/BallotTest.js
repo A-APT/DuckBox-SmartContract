@@ -1,20 +1,22 @@
 const truffleAssert = require('truffle-assertions')
 const ballot = artifacts.require("Ballot")
 
-contract("Ballot", function (accounts) {
+contract("Ballot_official", function (accounts) {
     const candidate1 = "0x53696c7665720000000000000000000000000000000000000000000000000000";
     const voter1 = "je"
     const voter2 = "apt"
 
     it("is_constructor_works_well", async function () {
         // arrange
-        let instance = await ballot.deployed();
+        let instance = await ballot.deployed(); // [candidate1], true
         let status = await instance.status();
         let chairperson = await instance.chairperson();
+        let isOfficial = await instance.isOfficial();
 
         // assert
         assert.equal(chairperson.valueOf(), accounts[0], "accounts[0] wasn't the contract owner(chairperson).")
         assert.equal(status, 0) // BallotStatus.OPEN
+        assert.equal(isOfficial, true)
     })
     it("is_candidates_not_works_well", async () => {
         // arrange
@@ -37,6 +39,16 @@ contract("Ballot", function (accounts) {
         await truffleAssert.reverts(
             instance.resultOfBallot(),
             "This function is restricted only at FINISHED status."
+        );
+    })
+    it("is_vote_reverts_on_not_ongoing", async () => {
+        // arrange
+        let instance = await ballot.deployed();
+
+        // act, assert: check revert when not ONGOING status
+        await truffleAssert.reverts(
+            instance.vote(0, "anyone"),
+            "Vote is allowed at Ballot is ONGOING."
         );
     })
 
@@ -76,7 +88,7 @@ contract("Ballot", function (accounts) {
         // act, assert: check revert when call twice
         await truffleAssert.reverts(
             instance.giveRightToVoters(["new voter"]),
-            "This function can only be called once."
+            "This function can only at OPEN status (called once)."
         );
     })
 
@@ -86,7 +98,6 @@ contract("Ballot", function (accounts) {
         let notOwner = accounts[2];
 
         // act
-        let voters = [voter1, voter2]
         await instance.vote(0, voter1, {from: notOwner})
 
         // assert
@@ -162,5 +173,47 @@ contract("Ballot", function (accounts) {
         assert.equal(result.length, 1, "number of candidate is wrong.")
         assert.equal(result[0].name, candidate1, "candidate name is wrong.")
         assert.equal(result[0].voteCount, 1, "voteCount is wrong.")
+    })
+})
+
+contract("Ballot_community", function (accounts) {
+    const candidate1 = "0x53696c7665720000000000000000000000000000000000000000000000000000";
+    it("is_constructor_works_well", async function () {
+        // arrange
+        let instance = await ballot.new([candidate1], false);
+        let status = await instance.status();
+        let chairperson = await instance.chairperson();
+        let isOfficial = await instance.isOfficial();
+
+        // assert
+        assert.equal(chairperson.valueOf(), accounts[0], "accounts[0] wasn't the contract owner(chairperson).")
+        assert.equal(status, 1) // BallotStatus.ONGOING
+        assert.equal(isOfficial, false)
+    })
+    it("is_giveRightToVoters_revert_well", async () => {
+        // arrange
+        let instance = await ballot.new([candidate1], false);
+
+        // act, assert: check revert when call twice
+        await truffleAssert.reverts(
+            instance.giveRightToVoters(["new voter"]),
+            "This function can only at OPEN status (called once)."
+        );
+    })
+    it("is_vote_works_well", async () => {
+        // arrange
+        let instance = await ballot.new([candidate1], false);
+        let notOwner = accounts[3];
+        let user = "user"
+
+        // act
+        await instance.vote(0, user, {from: notOwner})
+
+        // assert
+        let voter = await instance.voters(user)
+        assert.equal(voter.right, false)
+        assert.equal(voter.voted, true)
+
+        // TODO check candidate voteCount: ?
     })
 })

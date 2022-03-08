@@ -27,14 +27,15 @@ contract Ballot {
     }
 
     BallotStatus public status;
+    bool public isOfficial;
     address public chairperson; // or group
 
     mapping(string => Voter) public voters; // key is did
     Candidate[] private candidates;
 
     /// Create new ballot
-    constructor(bytes32[] memory _candidateNames) {
-        status = BallotStatus.OPEN;
+    constructor(bytes32[] memory _candidateNames, bool _isOfficial) {
+        isOfficial = _isOfficial;
         chairperson = msg.sender;
 
         // Register candidates
@@ -44,6 +45,9 @@ contract Ballot {
                 voteCount: 0
             }));
         }
+
+        if(isOfficial) status = BallotStatus.OPEN;
+        else status = BallotStatus.ONGOING; // community doesn't need 'right'
     }
 
     /// Give voters the right to vote on this ballot
@@ -54,7 +58,7 @@ contract Ballot {
         );
         require( // only called one time
             status == BallotStatus.OPEN,
-            "This function can only be called once."
+            "This function can only at OPEN status (called once)."
         );
         for (uint i=0; i<_voters.length; i++) {
             string memory newVoter = _voters[i];
@@ -65,8 +69,13 @@ contract Ballot {
     }
 
     function vote(uint _vote, string memory did) external {
+        require( // only called one time
+            status == BallotStatus.ONGOING,
+            "Vote is allowed at Ballot is ONGOING."
+        );
+
         Voter storage sender = voters[did]; // can be anonymous??
-        require(sender.right, "Has no right to vote.");
+        if(isOfficial) require(sender.right, "Has no right to vote.");
         require(!sender.voted, "Already voted.");
         sender.voted = true;
 

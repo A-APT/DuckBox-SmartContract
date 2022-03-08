@@ -80,6 +80,53 @@ contract("Ballot", function (accounts) {
         );
     })
 
+    it("is_vote_works_well", async () => {
+        // arrange
+        let instance = await ballot.deployed();
+        let notOwner = accounts[2];
+
+        // act
+        let voters = [voter1, voter2]
+        await instance.vote(0, voter1, {from: notOwner})
+
+        // assert
+        let voter = await instance.voters(voter1)
+        assert.equal(voter.right, true)
+        assert.equal(voter.voted, true)
+
+        // TODO check candidate voteCount: ?
+    })
+    it("is_vote_reverts_when_already_voted", async () => {
+        // arrange
+        let instance = await ballot.deployed();
+
+        // act, assert: check revert when already voted voter
+        await truffleAssert.reverts(
+            instance.vote(0, voter1),
+            "Already voted."
+        );
+    })
+    it("is_vote_reverts_when_no_right_to_vote", async () => {
+        // arrange
+        let instance = await ballot.deployed();
+
+        // act, assert: check revert when no right to vote
+        await truffleAssert.reverts(
+            instance.vote(0, "not a voter"),
+            "Has no right to vote."
+        );
+    })
+    it("is_vote_reverts_when_invalid_candidate", async () => {
+        // arrange
+        let instance = await ballot.deployed();
+
+
+        // act, assert: check revert when already voted voter
+        await truffleAssert.reverts(
+            instance.vote(1, voter2)
+        );
+    })
+
     it("is_close_works_well", async () => {
         // arrange
         let instance = await ballot.deployed();
@@ -114,6 +161,6 @@ contract("Ballot", function (accounts) {
         // assert
         assert.equal(result.length, 1, "number of candidate is wrong.")
         assert.equal(result[0].name, candidate1, "candidate name is wrong.")
-        assert.equal(result[0].voteCount, 0, "voteCount is wrong.")
+        assert.equal(result[0].voteCount, 1, "voteCount is wrong.")
     })
 })

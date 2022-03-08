@@ -6,6 +6,7 @@ contract("Group", function (accounts) {
     const _groupApprover1 = "groupApprover1";
     const _groupApprover2 = "groupApprover2";
     const _userDid1 = "userDid1";
+    const _userDid2 = "userDid2";
 
     it("Confirm_group_creation", async function () {
         //arrange
@@ -25,7 +26,7 @@ contract("Group", function (accounts) {
 
     });
 
-    it("request_to_join_before_completing_group_authentication", async () => {
+    it("Request_to_join_before_completing_group_authentication", async () => {
         let instance = await group.deployed();
 
         await truffleAssert.reverts(
@@ -34,11 +35,20 @@ contract("Group", function (accounts) {
         );
     });
 
-    it("request_approval_before_completing_group_authentication", async () => {
+    it("Request_approval_before_completing_group_authentication", async () => {
         let instance = await group.deployed();
 
         await truffleAssert.reverts(
             instance.approveMember(_userDid1, _groupOwnerDid),
+            "This function is restricted to the Valid group"
+        );
+    });
+
+    it("Request_exitMember_before_completing_group_authentication", async () => {
+        let instance = await group.deployed();
+
+        await truffleAssert.reverts(
+            instance.exitMember(_groupApprover1),
             "This function is restricted to the Valid group"
         );
     });
@@ -119,5 +129,26 @@ contract("Group", function (accounts) {
             instance.approveMember(_groupApprover2, _userDid1),
             "Already group member"
         );
+    });
+
+    it("Withdrawal_if_the__requester_does_not_member", async() => {
+        let instance = await group.deployed();
+
+        await truffleAssert.reverts(
+            instance.exitMember(_userDid2),
+            "Not member"
+        );
+    });
+
+    it("Withdrawal", async() => {
+        let instance = await group.deployed();
+
+        await instance.exitMember(_userDid1);
+        
+        let count = (await instance.requesters(_userDid1)).count;
+        assert.equal(count, 0, "not equal count");
+
+        let valid = (await instance.requesters(_userDid1)).isValid;
+        assert.equal(valid, false, "not equal valid");
     });
 });

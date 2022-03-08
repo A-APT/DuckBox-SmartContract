@@ -144,9 +144,6 @@ contract("Group", function (accounts) {
         let instance = await group.deployed();
 
         await instance.exitMember(_userDid1);
-        
-        let count = (await instance.requesters(_userDid1)).count;
-        assert.equal(count, 0, "not equal count");
 
         let valid = (await instance.requesters(_userDid1)).isValid;
         assert.equal(valid, false, "not equal valid");

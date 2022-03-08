@@ -65,17 +65,14 @@ contract Group{
     }
 
     //Withdrawal
-    function exitMember(string memory _requesterDid) onlyValidGroup external returns(bool) {
+    function exitMember(string memory _requesterDid) onlyValidGroup external {
         //Check if requester is a member of the group
         require(
            requesters[_requesterDid].isValid == true,
             "Not member"
         );
 
-        requesters[_requesterDid].count = 0;
-        requesters[_requesterDid].isValid = false;
-
-        return requesters[_requesterDid].isValid;
+        delete requesters[_requesterDid];
     }
 
     //group authentication

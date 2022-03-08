@@ -53,7 +53,7 @@ contract("DecentralizedId", function (accounts) {
         assert.equal(id.addr, owner);
         assert.equal(id.isValid, true);
     })
-    it("is_removeId_works_well", async ()m => {
+    it("is_removeId_works_well", async () => {
         // arrange
         let instance = await decentralizedId.deployed();
 

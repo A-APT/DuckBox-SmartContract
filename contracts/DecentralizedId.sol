@@ -32,7 +32,7 @@ contract DecentralizedId {
             checkRegistered(_id) == false,
             "Already registered ID."
         );
-        ids[_id].addr = owner;
+        ids[_id].addr = msg.sender;
         ids[_id].isValid = true;
     }
 

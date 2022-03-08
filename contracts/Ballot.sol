@@ -2,10 +2,15 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 contract Ballot {
+    enum BallotStatus {
+        OPEN,
+        ONGOING,
+        FINISHED
+    }
+
     struct Voter {
-        uint weight;
+        bool right;
         bool voted;
-        uint vote;
     }
 
     struct Candidate {
@@ -13,15 +18,25 @@ contract Ballot {
         uint voteCount;
     }
 
+    modifier atFinished {
+        require(
+            status == BallotStatus.FINISHED,
+            "This function is restricted only at FINISHED status."
+        );
+        _;
+    }
+
+    BallotStatus public status;
+    bool public isOfficial;
     address public chairperson; // or group
 
-    mapping(address => Voter) public voters;
-    Candidate[] public candidates;
+    mapping(string => Voter) public voters; // key is did
+    Candidate[] private candidates;
 
     /// Create new ballot
-    constructor(bytes32[] memory _candidateNames) {
+    constructor(bytes32[] memory _candidateNames, bool _isOfficial) {
+        isOfficial = _isOfficial;
         chairperson = msg.sender;
-        voters[chairperson].weight = 1;
 
         // Register candidates
         for (uint i=0; i<_candidateNames.length; i++) {
@@ -30,33 +45,53 @@ contract Ballot {
                 voteCount: 0
             }));
         }
+
+        if(isOfficial) status = BallotStatus.OPEN;
+        else status = BallotStatus.ONGOING; // community doesn't need 'right'
     }
 
     /// Give voters the right to vote on this ballot
-    function giveRightToVoters(address[] memory _voters) external {
+    function giveRightToVoters(string[] memory _voters) external {
         require(
             msg.sender == chairperson,
             "Only chairperson can give right to vote."
         );
+        require( // only called one time
+            status == BallotStatus.OPEN,
+            "This function can only at OPEN status (called once)."
+        );
         for (uint i=0; i<_voters.length; i++) {
-            address newVoter = _voters[i];
-            voters[newVoter].weight = 1;
-            voters[newVoter].voted = false; // TODO add restriction
+            string memory newVoter = _voters[i];
+            voters[newVoter].right = true; // give right
+            // voters[newVoter].voted = false; // default is false
         }
+        status = BallotStatus.ONGOING; // vote is started
     }
 
-    function vote(uint _vote) external {
-        Voter storage sender = voters[msg.sender];
-        require(sender.weight != 0, "Has no right to vote.");
+    function vote(uint _vote, string memory did) external {
+        require( // only called one time
+            status == BallotStatus.ONGOING,
+            "Vote is allowed at Ballot is ONGOING."
+        );
+
+        Voter storage sender = voters[did]; // can be anonymous??
+        if(isOfficial) require(sender.right, "Has no right to vote.");
         require(!sender.voted, "Already voted.");
         sender.voted = true;
-        sender.vote = _vote;
 
         // * WHEN array out of bounds: throw automatically and revert all changes
-        candidates[_vote].voteCount += sender.weight;
+        candidates[_vote].voteCount += 1; // weight is always 1
     }
 
-    function resultOfBallot() external view returns (Candidate[] memory candidates_) {
+    function close() external {
+        require(
+            msg.sender == chairperson,
+            "Only chairperson can close this ballot."
+        );
+        status = BallotStatus.FINISHED;
+    }
+
+    function resultOfBallot() atFinished external view returns (Candidate[] memory candidates_) {
         candidates_ = candidates;
     }
 }

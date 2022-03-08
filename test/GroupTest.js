@@ -18,7 +18,7 @@ contract("Group", function (accounts) {
         //check
         assert.equal(owner.valueOf(),accounts[0],"Does not match owner");
 
-        let valid = (await instance.requesters(_groupOwnerDid)).isValid;
+        let valid = (await instance.members(_groupOwnerDid)).isValid;
         assert.equal(valid, true, "Group owner's valid is False");
 
         let status = await instance.status();
@@ -61,7 +61,7 @@ contract("Group", function (accounts) {
         let status = await instance.status();
         assert.equal(status, 1, "not equal status");
 
-        let groupApprover1Valid = (await instance.requesters(_groupApprover1)).isValid;
+        let groupApprover1Valid = (await instance.members(_groupApprover1)).isValid;
         assert.equal(groupApprover1Valid, true, "not equal vaild");
     });
 
@@ -82,7 +82,7 @@ contract("Group", function (accounts) {
         let status = await instance.status();
         assert.equal(status, 2, "not equal status");
 
-        let groupApprover2Valid = (await instance.requesters(_groupApprover2)).isValid;
+        let groupApprover2Valid = (await instance.members(_groupApprover2)).isValid;
         assert.equal(groupApprover2Valid, true, "not equal valid");
     });
 
@@ -91,7 +91,7 @@ contract("Group", function (accounts) {
 
         await instance.requestMember(_userDid1);
 
-        let count = (await instance.requesters(_userDid1)).count;
+        let count = (await instance.members(_userDid1)).count;
         assert.equal(count, 0, "not equal count");
     });
 
@@ -100,7 +100,7 @@ contract("Group", function (accounts) {
 
         await instance.approveMember(_groupApprover1, _userDid1);
 
-        let count = (await instance.requesters(_userDid1)).count;
+        let count = (await instance.members(_userDid1)).count;
         assert.equal(count, 1, "not equal count");
     });
 
@@ -118,7 +118,7 @@ contract("Group", function (accounts) {
 
         await instance.approveMember(_groupApprover2, _userDid1);
 
-        let userDid1Valid = (await instance.requesters(_userDid1)).isValid;
+        let userDid1Valid = (await instance.members(_userDid1)).isValid;
         assert.equal(userDid1Valid, true, "not equal valid");
     });
 
@@ -145,7 +145,7 @@ contract("Group", function (accounts) {
 
         await instance.exitMember(_userDid1);
 
-        let valid = (await instance.requesters(_userDid1)).isValid;
+        let valid = (await instance.members(_userDid1)).isValid;
         assert.equal(valid, false, "not equal valid");
     });
 });

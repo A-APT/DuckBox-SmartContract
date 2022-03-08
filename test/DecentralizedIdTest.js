@@ -50,10 +50,10 @@ contract("DecentralizedId", function (accounts) {
         const id = await instance.getId(did, {from: notOwner});
 
         // assert
-        assert.equal(id.owner, owner);
+        assert.equal(id.addr, owner);
         assert.equal(id.isValid, true);
     })
-    it("is_removeId_works_well", async () => {
+    it("is_removeId_works_well", async ()m => {
         // arrange
         let instance = await decentralizedId.deployed();
 

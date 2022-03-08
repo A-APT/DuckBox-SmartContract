@@ -3,7 +3,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract DecentralizedId {
     struct Id {
-        address owner;
+        address addr;
         bool isValid;
     }
 
@@ -32,7 +32,7 @@ contract DecentralizedId {
             checkRegistered(_id) == false,
             "Already registered ID."
         );
-        ids[_id].owner = owner;
+        ids[_id].addr = owner;
         ids[_id].isValid = true;
     }
 

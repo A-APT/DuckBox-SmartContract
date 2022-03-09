@@ -6,20 +6,22 @@ contract Group{
         WAITING,
         VALID
     }
-    struct Member{
-        uint count;
-        bool isValid;
+    
+    enum MemberStatus{
+        INVALID,
+        REQUEST,
+        WATING,
+        VALID
     }
 
     address public owner; //group leader
     GroupStatus public status;
     
-    mapping(string => Member) public members; //key: user did, value: Requester
+    mapping(string => MemberStatus) public members; //key: user did, value: Requester
 
     constructor(string memory _ownerDid) {
         owner = msg.sender;
-        members[_ownerDid].count = 0;
-        members[_ownerDid].isValid = true;
+        members[_ownerDid] = MemberStatus.VALID;
 
         status = GroupStatus.INVALID;
     }
@@ -35,40 +37,38 @@ contract Group{
     //Request to join a group
     function requestMember(string memory _userDid) onlyValidGroup external{
         require(
-            members[_userDid].count == 0,
+            members[_userDid] == MemberStatus.INVALID,
             "Already request Member"
         );
 
-        members[_userDid].count = 0;
-        members[_userDid].isValid = false;
+        members[_userDid] = MemberStatus.REQUEST;
     }
 
     //mutual authentication
-    function approveMember(string memory _approverDid, string memory _requesterDid) onlyValidGroup external returns(bool){
+    function approveMember(string memory _approverDid, string memory _requesterDid) onlyValidGroup external{
         //Check Approver Permissions
         require(
-            members[_approverDid].isValid == true,
+            members[_approverDid] == MemberStatus.VALID,
             "No permission"
         );
         //Check if requester is already a member of the group
         require(
-           members[_requesterDid].isValid == false,
+           members[_requesterDid] == MemberStatus.REQUEST ||  members[_requesterDid] == MemberStatus.WATING,
             "Already group member"
         );
         
-        members[_requesterDid].count++;
-        
-        if(members[_requesterDid].count>=2){
-            members[_requesterDid].isValid = true;
+        if(members[_requesterDid] == MemberStatus.REQUEST){
+            members[_requesterDid] = MemberStatus.WATING;
+        }else if(members[_requesterDid] == MemberStatus.WATING){
+            members[_requesterDid] = MemberStatus.VALID;
         }
-        return members[_requesterDid].isValid;
     }
 
     //Withdrawal
     function exitMember(string memory _requesterDid) onlyValidGroup external {
         //Check if requester is a member of the group
         require(
-           members[_requesterDid].isValid == true,
+           members[_requesterDid] == MemberStatus.VALID,
             "Not member"
         );
 
@@ -85,7 +85,7 @@ contract Group{
 
         //Check for duplicate approvers
         require(
-           members[_approverDid].isValid == false,
+           members[_approverDid] != MemberStatus.VALID,
             "can not approve"
         );
         
@@ -95,6 +95,6 @@ contract Group{
             status = GroupStatus.VALID;
         }
 
-        members[_approverDid].isValid = true;
+        members[_approverDid] = MemberStatus.VALID;
     }
 }

@@ -18,8 +18,8 @@ contract("Group", function (accounts) {
         //check
         assert.equal(owner.valueOf(),accounts[0],"Does not match owner");
 
-        let valid = (await instance.members(_groupOwnerDid)).isValid;
-        assert.equal(valid, true, "Group owner's valid is False");
+        let ownderStatus = await instance.members(_groupOwnerDid);
+        assert.equal(ownderStatus, 3, "Group owner's valid is False");
 
         let status = await instance.status();
         assert.equal(status, 0, "not equal status");
@@ -61,8 +61,8 @@ contract("Group", function (accounts) {
         let status = await instance.status();
         assert.equal(status, 1, "not equal status");
 
-        let groupApprover1Valid = (await instance.members(_groupApprover1)).isValid;
-        assert.equal(groupApprover1Valid, true, "not equal vaild");
+        let groupApprover1Status = await instance.members(_groupApprover1);
+        assert.equal(groupApprover1Status, 3, "not equal status");
     });
 
     it("Group_authentication_when_the_same_person_approves", async () => {
@@ -82,8 +82,8 @@ contract("Group", function (accounts) {
         let status = await instance.status();
         assert.equal(status, 2, "not equal status");
 
-        let groupApprover2Valid = (await instance.members(_groupApprover2)).isValid;
-        assert.equal(groupApprover2Valid, true, "not equal valid");
+        let groupApprover2Status = await instance.members(_groupApprover2);
+        assert.equal(groupApprover2Status, 3, "not equal status");
     });
 
     it("Request_to_join_a_group", async () => {
@@ -91,8 +91,8 @@ contract("Group", function (accounts) {
 
         await instance.requestMember(_userDid1);
 
-        let count = (await instance.members(_userDid1)).count;
-        assert.equal(count, 0, "not equal count");
+        let status = await instance.members(_userDid1);
+        assert.equal(status, 1, "not equal status");
     });
 
     it("Approved_to_join_the_group_by_1_person", async() => {
@@ -100,8 +100,8 @@ contract("Group", function (accounts) {
 
         await instance.approveMember(_groupApprover1, _userDid1);
 
-        let count = (await instance.members(_userDid1)).count;
-        assert.equal(count, 1, "not equal count");
+        let status = await instance.members(_userDid1);
+        assert.equal(status, 2, "not equal status");
     });
 
     it("Approved_to_join_the_group_if_the_approver_does_not_have_the_authority", async() => {
@@ -118,8 +118,8 @@ contract("Group", function (accounts) {
 
         await instance.approveMember(_groupApprover2, _userDid1);
 
-        let userDid1Valid = (await instance.members(_userDid1)).isValid;
-        assert.equal(userDid1Valid, true, "not equal valid");
+        let status = await instance.members(_userDid1);
+        assert.equal(status, 3, "not equal status");
     });
 
     it("Approved_to_join_the_group_if_already_approved", async() => {
@@ -145,7 +145,7 @@ contract("Group", function (accounts) {
 
         await instance.exitMember(_userDid1);
 
-        let valid = (await instance.members(_userDid1)).isValid;
-        assert.equal(valid, false, "not equal valid");
+        let status = await instance.members(_userDid1);
+        assert.equal(status, 0, "not equal status");
     });
 });

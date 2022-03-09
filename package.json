@@ -2,7 +2,7 @@
   "name": "DuckBox-SC",
   "version": "1.0.0",
   "dependencies": {
-    "@truffle/hdwallet-provider": "2.0.3",
+    "@truffle/hdwallet-provider": "^2.0.3",
     "dotenv": "16.0.0",
     "web3": "1.7.0"
   },

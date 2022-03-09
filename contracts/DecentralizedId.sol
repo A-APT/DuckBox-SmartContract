@@ -3,12 +3,12 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract DecentralizedId {
     struct Id {
-        string id;
+        address addr;
         bool isValid;
     }
 
     address public owner;
-    mapping(string => Id) public ids;
+    mapping(string => Id) public ids; 
 
     modifier onlyOwner {
         require(
@@ -18,6 +18,7 @@ contract DecentralizedId {
         _;
     }
 
+    //배포하는 사람이 호출하는 것이 constructor
     constructor() {
         owner = msg.sender;
     }
@@ -26,12 +27,12 @@ contract DecentralizedId {
         return ids[_id].isValid;
     }
 
-    function registerId(string memory _id) onlyOwner external {
+    function registerId(string memory _id) external {
         require(
             checkRegistered(_id) == false,
             "Already registered ID."
         );
-        ids[_id].id = _id;
+        ids[_id].addr = msg.sender;
         ids[_id].isValid = true;
     }
 

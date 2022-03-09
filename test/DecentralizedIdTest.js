@@ -28,18 +28,6 @@ contract("DecentralizedId", function (accounts) {
             "Already registered ID."
         );
     })
-    it("is_registerId_reverts_well", async () => {
-        // arrange
-        let instance = await decentralizedId.deployed();
-        const did = "did.testing2";
-        let notOwner = accounts[1];
-
-        // act, assert: check revert when not owner
-        await truffleAssert.reverts(
-            instance.registerId(did, {from: notOwner}),
-            "This function is restricted to the contract's owner."
-        );
-    })
     it("is_getId_works_well", async () => {
         // arrange
         let instance = await decentralizedId.deployed();

@@ -27,7 +27,7 @@ contract DecentralizedId {
         return ids[_id].isValid;
     }
 
-    function registerId(string memory _id) onlyOwner external {
+    function registerId(string memory _id) external {
         require(
             checkRegistered(_id) == false,
             "Already registered ID."

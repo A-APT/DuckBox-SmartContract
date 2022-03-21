@@ -129,8 +129,8 @@ contract("Ballot_official", function (accounts) {
 
 
     it("is_close_and_resultOfBallot_works_well", async () => {
-        // wait 3000ms
-        await new Promise(resolve => setTimeout(resolve, 10000))
+        // wait 15000ms
+        await new Promise(resolve => setTimeout(resolve, 15000))
 
         // act
         await instance.close();

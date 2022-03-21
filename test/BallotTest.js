@@ -1,126 +1,110 @@
 const truffleAssert = require('truffle-assertions')
 const ballot = artifacts.require("Ballot")
 
-contract("Ballot_official", function (accounts) {
-    const candidate1 = "0x53696c7665720000000000000000000000000000000000000000000000000000";
-    const voter1 = "je"
-    const voter2 = "apt"
+const candidates = ["candidate1", "candidate2"]
+const voters = ["voter1", "voter2"]
+const PREREGISTERED = 0
+const REGISTERED = 1
+const OPEN = 2
+const CLOSE = 3
 
+contract("Ballot_official", function (accounts) {
+    let instance = null
+    let startTime = Math.floor(Date.now() / 1000) + 2
+    let endTime = startTime + 20
     it("is_constructor_works_well", async function () {
-        // arrange
-        let instance = await ballot.deployed(); // [candidate1], true
-        let status = await instance.status();
-        let chairperson = await instance.chairperson();
-        let isOfficial = await instance.isOfficial();
+        // get instance first
+        instance = await ballot.new(candidates, true, startTime, endTime, voters); // official ballot
 
         // assert
+        let chairperson = await instance.chairperson();
         assert.equal(chairperson.valueOf(), accounts[0], "accounts[0] wasn't the contract owner(chairperson).")
-        assert.equal(status, 0) // BallotStatus.OPEN
-        assert.equal(isOfficial, true)
+        assert.equal(await instance.status(), REGISTERED)
+        assert.equal(await instance.isOfficial(), true)
+        assert.equal(await instance.startTime(), startTime)
+        assert.equal(await instance.endTime(), endTime)
+
+        for (const voter of voters) {
+            let v = await instance.voters(voter)
+            assert.equal(v.right, true)
+            assert.equal(v.voted, false)
+        }
     })
     it("is_candidates_not_works_well", async () => {
-        // arrange
-        let instance = await ballot.deployed();
-
         // act, assert: check fail at call candidates (it is private)
         try {
-            await instance.candidates(candidate1)
+            await instance.candidates(candidates[0])
             assert.fail("This should be failed...")
         } catch (e) {
             assert.equal(e instanceof TypeError, true)
             assert.equal(e.message, "instance.candidates is not a function")
         }
     })
-    it("is_resultOfBallot_reverts_on_not_finished", async () => {
-        // arrange
-        let instance = await ballot.deployed();
-
-        // act, assert: check revert when not FINISHED status
+    it("is_resultOfBallot_reverts_on_not_closed", async () => {
+        // act, assert: check revert when not CLOSE status
         await truffleAssert.reverts(
             instance.resultOfBallot(),
-            "This function is restricted only at FINISHED status."
+            "This function is restricted only at CLOSE status."
         );
     })
-    it("is_vote_reverts_on_not_ongoing", async () => {
-        // arrange
-        let instance = await ballot.deployed();
-
-        // act, assert: check revert when not ONGOING status
+    it("is_vote_reverts_not_on_open", async () => {
+        // act, assert: check revert when not OPEN status
         await truffleAssert.reverts(
             instance.vote(0, "anyone"),
-            "Vote is allowed at Ballot is ONGOING."
+            "Vote is allowed at Ballot is OPEN."
         );
     })
-
-    it("is_giveRightToVoters_works_well", async () => {
-        // arrange
-        let instance = await ballot.deployed();
+    it("is_close_reverts_not_on_OPEN", async () => {
+        // act, assert: check revert when not on OPEN status
+        await truffleAssert.reverts(
+            instance.close(),
+            "This function can be called only at OPEN status."
+        );
+    })
+    it("is_open_works_well", async () => {
+        // wait 3000ms
+        await new Promise(resolve => setTimeout(resolve, 3000))
 
         // act
-        let voters = [voter1, voter2]
-        await instance.giveRightToVoters(voters)
+        await instance.open()
 
         // assert
-        for (const voter of voters) {
-            let v = await instance.voters(voter)
-            assert.equal(v.right, true)
-            assert.equal(v.voted, false)
-        }
-        // check status is ONGOING
-        let status = await instance.status();
-        assert.equal(status, 1) // BallotStatus.ONGOING
+        assert.equal(await instance.status(), OPEN)
     })
-    it("is_giveRightToVoters_reverts_on_not_chairperson", async () => {
+    it("is_open_reverts_not_on_REGISTRED", async () => {
         // arrange
-        let instance = await ballot.deployed();
+        let tempInstance = await ballot.deployed(candidates, true, Date.now() + 10, Date.now() + 100, voters); // official ballot
         let notOwner = accounts[1];
 
-        // act, assert: check revert when not owner(chairperson)
+        // act, assert: check revert when not on REGISTERED status
         await truffleAssert.reverts(
-            instance.giveRightToVoters(["new voter"], {from: notOwner}),
-            "Only chairperson can give right to vote."
-        );
-    })
-    it("is_giveRightToVoters_reverts_on_called_twice", async () => {
-        // arrange
-        let instance = await ballot.deployed();
-
-        // act, assert: check revert when call twice
-        await truffleAssert.reverts(
-            instance.giveRightToVoters(["new voter"]),
-            "This function can only at OPEN status (called once)."
+            instance.open(),
+            "This function can be called only at REGISTERED status."
         );
     })
 
     it("is_vote_works_well", async () => {
         // arrange
-        let instance = await ballot.deployed();
         let notOwner = accounts[2];
 
         // act
-        await instance.vote(0, voter1, {from: notOwner})
+        await instance.vote(0, voters[0], {from: notOwner})
 
         // assert
-        let voter = await instance.voters(voter1)
+        let voter = await instance.voters(voters[0])
         assert.equal(voter.right, true)
         assert.equal(voter.voted, true)
 
         // TODO check candidate voteCount: ?
     })
     it("is_vote_reverts_when_already_voted", async () => {
-        // arrange
-        let instance = await ballot.deployed();
-
         // act, assert: check revert when already voted voter
         await truffleAssert.reverts(
-            instance.vote(0, voter1),
+            instance.vote(0, voters[0]),
             "Already voted."
         );
     })
     it("is_vote_reverts_when_no_right_to_vote", async () => {
-        // arrange
-        let instance = await ballot.deployed();
-
         // act, assert: check revert when no right to vote
         await truffleAssert.reverts(
             instance.vote(0, "not a voter"),
@@ -128,86 +112,119 @@ contract("Ballot_official", function (accounts) {
         );
     })
     it("is_vote_reverts_when_invalid_candidate", async () => {
-        // arrange
-        let instance = await ballot.deployed();
-
-
         // act, assert: check revert when already voted voter
         await truffleAssert.reverts(
-            instance.vote(1, voter2)
+            instance.vote(2, voters[1])
         );
     })
 
-    it("is_close_works_well", async () => {
-        // arrange
-        let instance = await ballot.deployed();
+    it("is_close_reverts_before_endTime", async () => {
+        // act, assert: check revert when not owner(chairperson)
+        await truffleAssert.reverts(
+            instance.close(),
+            "Before the end time."
+        );
+        assert.equal(await instance.status(), OPEN)
+    })
+
+
+    it("is_close_and_resultOfBallot_works_well", async () => {
+        // wait 3000ms
+        await new Promise(resolve => setTimeout(resolve, 10000))
 
         // act
         await instance.close();
-
-        // aseert
-        // check status is FINISHED
-        let status = await instance.status();
-        assert.equal(status, 2) // BallotStatus.FINISHED
-    })
-    it("is_close_reverts_when_not_chairperson", async () => {
-        // arrange
-        let instance = await ballot.deployed();
-        let notOwner = accounts[1];
-
-        // act, assert: check revert when not owner(chairperson)
-        await truffleAssert.reverts(
-            instance.close({from: notOwner}),
-            "Only chairperson can close this ballot."
-        );
-    })
-
-    it("is_resultOfBallot_works_well", async () => {
-        // arrange
-        let instance = await ballot.deployed();
-
-        // act
         let result = await instance.resultOfBallot();
 
-        // assert
-        assert.equal(result.length, 1, "number of candidate is wrong.")
-        assert.equal(result[0].name, candidate1, "candidate name is wrong.")
+        // aseert
+        let status = await instance.status();
+        assert.equal(status, 3) // check status is CLOSE
+
+        assert.equal(result.length, 2, "number of candidate is wrong.")
+        assert.equal(result[0].name, candidates[0], "candidate name is wrong.")
         assert.equal(result[0].voteCount, 1, "voteCount is wrong.")
     })
 })
 
-contract("Ballot_community", function (accounts) {
-    const candidate1 = "0x53696c7665720000000000000000000000000000000000000000000000000000";
-    it("is_constructor_works_well", async function () {
-        // arrange
-        let instance = await ballot.new([candidate1], false);
-        let status = await instance.status();
-        let chairperson = await instance.chairperson();
-        let isOfficial = await instance.isOfficial();
+contract("Ballot_status", function (accounts) {
+    it("is_constructor_works_well_on_after_startTime", async () => {
+        // arrange & act
+        let startTime = Math.floor(Date.now() / 1000) - 10
+        let endTime = Math.floor(Date.now() / 1000) + 10
+        let instance = await ballot.new(candidates, true, startTime, endTime, voters);
 
         // assert
-        assert.equal(chairperson.valueOf(), accounts[0], "accounts[0] wasn't the contract owner(chairperson).")
-        assert.equal(status, 1) // BallotStatus.ONGOING
-        assert.equal(isOfficial, false)
+        let status = await instance.status();
+        assert.equal(status, OPEN) // check status is OPEN
     })
-    it("is_giveRightToVoters_revert_well", async () => {
+    it("is_constructor_reverts_when_endTime_is_earlier_than_startTime", async function () {
         // arrange
-        let instance = await ballot.new([candidate1], false);
+        let startTime = Math.floor(Date.now() / 1000) + 500
+        let endTime = startTime - 100
 
-        // act, assert: check revert when call twice
+        // act & assert
+        try {
+            await ballot.new(candidates, true, startTime, endTime, voters)
+            assert.fail("This should be failed...")
+        } catch (e) {
+            assert.equal(e.message, "Returned error: base fee exceeds gas limit -- Reason given: The start time must be earlier than the end time..")
+        }
+    })
+    it("is_constructor_reverts_when_endTime_is_earlier_than_now", async function () {
+        // arrange
+        let endTime = Math.floor(Date.now() / 1000) - 100
+        let startTime = endTime - 100
+
+        // act & assert
+        try {
+            await ballot.new(candidates, true, startTime, endTime, voters)
+            assert.fail("This should be failed...")
+        } catch (e) {
+            assert.equal(e.message, "Returned error: base fee exceeds gas limit -- Reason given: The start time must be earlier than the end time..")
+        }
+    })
+    it("is_open_reverts_before_startTime", async function () {
+        // arrange
+        let startTime = Math.floor(Date.now() / 1000) + 100
+        let endTime = startTime + 200
+        let instance = await ballot.new(candidates, true, startTime, endTime, voters);
+
+        // assert
         await truffleAssert.reverts(
-            instance.giveRightToVoters(["new voter"]),
-            "This function can only at OPEN status (called once)."
+            instance.open(),
+            "Before the start time."
         );
     })
-    it("is_vote_works_well", async () => {
-        // arrange
-        let instance = await ballot.new([candidate1], false);
-        let notOwner = accounts[3];
-        let user = "user"
+})
 
+contract("Ballot_community", function (accounts) {
+    let instance = null
+    let startTime = Math.floor(Date.now() / 1000)
+    let endTime = startTime + 100
+
+    it("is_constructor_works_well", async function () {
+        // arrange
+        // get instance first
+        instance = await ballot.new(candidates, false, startTime, endTime, voters);
+
+        // assert
+        let chairperson = await instance.chairperson();
+        assert.equal(chairperson.valueOf(), accounts[0], "accounts[0] wasn't the contract owner(chairperson).")
+        assert.equal(await instance.status(), OPEN)
+        assert.equal(await instance.isOfficial(), false)
+        assert.equal(await instance.startTime(), startTime)
+        assert.equal(await instance.endTime(), endTime)
+
+        // check voters info is discarded - since this is community ballot
+        for (const voter of voters) {
+            let v = await instance.voters(voter)
+            assert.equal(v.right, false)
+        }
+    })
+    it("is_vote_works_well", async () => {
         // act
-        await instance.vote(0, user, {from: notOwner})
+        let user = "user"
+        await instance.vote(0, user)
 
         // assert
         let voter = await instance.voters(user)

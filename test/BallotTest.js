@@ -3,10 +3,9 @@ const ballot = artifacts.require("Ballot")
 
 const candidates = ["candidate1", "candidate2"]
 const voters = ["voter1", "voter2"]
-const PREREGISTERED = 0
-const REGISTERED = 1
-const OPEN = 2
-const CLOSE = 3
+const REGISTERED = 0
+const OPEN = 1
+const CLOSE = 2
 
 contract("Ballot_official", function (accounts) {
     let instance = null
@@ -138,7 +137,7 @@ contract("Ballot_official", function (accounts) {
 
         // aseert
         let status = await instance.status();
-        assert.equal(status, 3) // check status is CLOSE
+        assert.equal(status, CLOSE) // check status is CLOSE
 
         assert.equal(result.length, 2, "number of candidate is wrong.")
         assert.equal(result[0].name, candidates[0], "candidate name is wrong.")

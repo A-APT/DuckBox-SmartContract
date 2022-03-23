@@ -45,7 +45,6 @@ contract Ballots {
 
 contract Ballot {
     enum BallotStatus {
-        PREREGISTERED, // need?
         REGISTERED,
         OPEN,
         CLOSE

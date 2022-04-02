@@ -23,22 +23,21 @@ contract DuckBox {
         );
         _;
     }
-    modifier checkDid(string memory _id) {
+    modifier checkRegistered() {
         require(
-            did.checkRegistered(_id),
-            "Requested did is not registered."
+            did.checkRegistered(tx.origin),
+            "Not registered address."
         );
         _;
     }
 
 
     /// DecentralizedId
-    function registerDid(string memory _id) external returns (address){
-        did.registerId(_id);
-        return msg.sender;
+    function registerDid(address _address, string memory _id) external {
+        did.registerId(_address, _id);
     }
-    function removeDid(string memory _id) external {
-        did.removeId(_id);
+    function removeDid(address _address) external {
+        did.removeId(_address);
     }
     ///
 

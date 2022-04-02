@@ -11,7 +11,7 @@ contract Ballots {
     address public owner;
 
     constructor() {
-        owner = msg.sender;
+        owner = tx.origin;
     }
 
     function registerBallot(

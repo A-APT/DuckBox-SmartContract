@@ -12,14 +12,14 @@ contract DecentralizedId {
 
     modifier onlyOwner {
         require(
-            msg.sender == owner,
+            owner == tx.origin,
             "This function is restricted to the contract's owner."
         );
         _;
     }
 
     constructor() {
-        owner = msg.sender;
+        owner = tx.origin;
     }
 
     function checkRegistered(string memory _id) public view returns (bool) {
@@ -31,7 +31,7 @@ contract DecentralizedId {
             checkRegistered(_id) == false,
             "Already registered ID."
         );
-        ids[_id].addr = msg.sender;
+        ids[_id].addr = tx.origin;
         ids[_id].isValid = true;
     }
 

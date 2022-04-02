@@ -33,11 +33,11 @@ contract DuckBox {
 
 
     /// DecentralizedId
-    function registerDid(string memory _id) onlyOwner external returns (address){
+    function registerDid(string memory _id) external returns (address){
         did.registerId(_id);
         return msg.sender;
     }
-    function removeDid(string memory _id) onlyOwner external {
+    function removeDid(string memory _id) external {
         did.removeId(_id);
     }
     ///

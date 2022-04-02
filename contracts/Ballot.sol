@@ -39,7 +39,7 @@ contract Ballot {
             _startTime < _endTime && block.timestamp < _endTime,
             "The start time must be earlier than the end time."
         );
-        chairperson = msg.sender;
+        chairperson = tx.origin;
         isOfficial = _isOfficial;
         startTime = _startTime;
         endTime = _endTime;

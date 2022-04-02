@@ -42,4 +42,37 @@ contract DuckBox {
     ///
 
 
+    /// Group
+
+    ///
+
+
+    /// Ballot
+    function registerBallot(
+        string memory _ballotId,
+        string[] memory _candidateNames,
+        bool _isOfficial,
+        uint256 _startTime, // milliseconds
+        uint256 _endTime, // milliseconds
+        string[] memory _voters
+    ) checkRegistered external returns (Ballot){
+
+        require(address(ballots[_ballotId]) == address(0));
+        ballots[_ballotId] = new Ballot(_candidateNames, _isOfficial, _startTime, _endTime, _voters);
+        return ballots[_ballotId];
+    }
+    function openBallot(string memory _ballotId) external {
+        require(address(ballots[_ballotId]) != address(0));
+        ballots[_ballotId].open();
+    }
+    function closeBallot(string memory _ballotId) external {
+        require(address(ballots[_ballotId]) != address(0));
+        ballots[_ballotId].close();
+    }
+    function getResultOfBallot(string memory _ballotId) external view returns (Ballot.Candidate[] memory candidates_){
+        require(address(ballots[_ballotId]) != address(0));
+        return ballots[_ballotId].resultOfBallot();
+    }
+    // TODO vote
+    ///
 }

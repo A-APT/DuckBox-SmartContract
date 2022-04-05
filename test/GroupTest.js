@@ -2,6 +2,7 @@ const truffleAssert = require('truffle-assertions')
 const group = artifacts.require("Group")
 
 contract("Group", function (accounts) {
+    const _groupId = "groupId"
     const _groupOwnerDid = "groupOwnerDid";
     const _groupApprover1 = "groupApprover1";
     const _groupApprover2 = "groupApprover2";
@@ -16,10 +17,11 @@ contract("Group", function (accounts) {
         let owner = await instance.owner();
 
         //check
-        assert.equal(owner.valueOf(),accounts[0],"Does not match owner");
+        assert.equal(await instance.groupId().valueOf(), _groupId, "Does not match groupId");
+        assert.equal(owner.valueOf(), _groupOwnerDid, "Does not match owner");
 
-        let ownderStatus = await instance.members(_groupOwnerDid);
-        assert.equal(ownderStatus, 3, "Group owner's valid is False");
+        let ownerStatus = await instance.members(_groupOwnerDid);
+        assert.equal(ownerStatus, 3, "Group owner's valid is False");
 
         let status = await instance.status();
         assert.equal(status, 0, "not equal status");
@@ -56,13 +58,18 @@ contract("Group", function (accounts) {
     it("Group_authentication_by_1_person", async () => {
         let instance = await group.deployed();
 
-        await instance.approveGroupAuthentication(_groupApprover1);
+        // act
+        let tx = await instance.approveGroupAuthentication(_groupApprover1);
 
+        // assert
         let status = await instance.status();
         assert.equal(status, 1, "not equal status");
 
         let groupApprover1Status = await instance.members(_groupApprover1);
         assert.equal(groupApprover1Status, 3, "not equal status");
+
+        // check event: not emitted when group status changed to WAITING
+        truffleAssert.eventNotEmitted(tx, 'groupAuthCompleted');
     });
 
     it("Group_authentication_when_the_same_person_approves", async () => {
@@ -77,13 +84,20 @@ contract("Group", function (accounts) {
     it("Group_authentication_by_2_person", async () => {
         let instance = await group.deployed();
 
-        await instance.approveGroupAuthentication(_groupApprover2);
+        // act
+        let tx = await instance.approveGroupAuthentication(_groupApprover2);
 
+        // arrange
         let status = await instance.status();
         assert.equal(status, 2, "not equal status");
 
         let groupApprover2Status = await instance.members(_groupApprover2);
         assert.equal(groupApprover2Status, 3, "not equal status");
+
+        // check event: emit event when group status changed to VALID
+        truffleAssert.eventEmitted(tx, 'groupAuthCompleted', (ev) => {
+            return ev.groupId === _groupId;
+        });
     });
 
     it("Request_to_join_a_group", async () => {

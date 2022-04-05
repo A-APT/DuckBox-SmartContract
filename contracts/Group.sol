@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.9.0;
 
 contract Group{
@@ -10,17 +11,21 @@ contract Group{
     enum MemberStatus{
         INVALID,
         REQUEST,
-        WATING,
+        WAITING,
         VALID
     }
 
-    address public owner; //group leader
+    string public groupId;
+    string public owner; //group leader
     GroupStatus public status;
     
     mapping(string => MemberStatus) public members; //key: user did, value: Requester
 
-    constructor(string memory _ownerDid) {
-        owner = msg.sender;
+    event groupAuthCompleted(string groupId);
+
+    constructor(string memory _groupId, string memory _ownerDid) {
+        groupId = _groupId;
+        owner = _ownerDid;
         members[_ownerDid] = MemberStatus.VALID;
 
         status = GroupStatus.INVALID;
@@ -53,13 +58,13 @@ contract Group{
         );
         //Check if requester is already a member of the group
         require(
-           members[_requesterDid] == MemberStatus.REQUEST ||  members[_requesterDid] == MemberStatus.WATING,
+           members[_requesterDid] == MemberStatus.REQUEST ||  members[_requesterDid] == MemberStatus.WAITING,
             "Already group member"
         );
         
         if(members[_requesterDid] == MemberStatus.REQUEST){
-            members[_requesterDid] = MemberStatus.WATING;
-        }else if(members[_requesterDid] == MemberStatus.WATING){
+            members[_requesterDid] = MemberStatus.WAITING;
+        }else if(members[_requesterDid] == MemberStatus.WAITING){
             members[_requesterDid] = MemberStatus.VALID;
         }
     }
@@ -93,6 +98,7 @@ contract Group{
             status = GroupStatus.WAITING;
         }else if(status == GroupStatus.WAITING){
             status = GroupStatus.VALID;
+            emit groupAuthCompleted(groupId); // emit event for notify group status is changed to VALID
         }
 
         members[_approverDid] = MemberStatus.VALID;

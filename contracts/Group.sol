@@ -103,4 +103,8 @@ contract Group{
 
         members[_approverDid] = MemberStatus.VALID;
     }
+
+    function getMemberStatus(string memory did) external view returns (MemberStatus _status){
+        _status = members[did];
+    }
 }

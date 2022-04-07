@@ -26,6 +26,10 @@ contract DecentralizedId {
         return ids[_address].isValid;
     }
 
+    function getDid(address _address) public view returns (string memory){
+        return ids[_address].id;
+    }
+
     function registerId(address _address, string memory _id) onlyOwner external {
         require(
             checkRegistered(_address) == false,

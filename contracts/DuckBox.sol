@@ -30,6 +30,13 @@ contract DuckBox {
         );
         _;
     }
+    modifier checkDid(string memory _did){
+        require(
+            keccak256(bytes(did.getDid(tx.origin))) == keccak256(bytes(_did)),
+            "Dose not match Did"
+        );
+        _;
+    }
 
 
     /// DecentralizedId
@@ -43,7 +50,45 @@ contract DuckBox {
 
 
     /// Group
+    function registerGroup( //request owner
+        string memory _groupId, 
+        string memory _ownerDid
+    ) checkDid(_ownerDid) checkRegistered external{
+        groups[_groupId] = new Group(_groupId, _ownerDid);
+    }
 
+    function requestGroupMember( //request requester
+        string memory _groupId, 
+        string memory _userDid
+    ) checkDid(_userDid) checkRegistered external{
+        groups[_groupId].requestMember(_userDid);
+    }
+
+    function approveGroupMember( //request approver
+        string memory _groupId, 
+        string memory _approverDid, 
+        string memory _requesterDid
+    ) checkRegistered external{
+        groups[_groupId].approveMember(_approverDid, _requesterDid);
+    }
+
+    function exitMember( //reqeust requester
+        string memory _groupId, 
+        string memory _requesterDid
+    ) checkRegistered external {
+        groups[_groupId].exitMember(_requesterDid);
+    }
+
+    function approveGroupAuthentication( //request approver
+        string memory _groupId, 
+        string memory _approverDid
+    ) checkDid(_approverDid) checkRegistered external {
+        groups[_groupId].approveGroupAuthentication(_approverDid);
+    }
+
+    function getMemberStatus(string memory _groupId, string memory _did) external view returns (Group.MemberStatus _status){
+        _status = groups[_groupId].getMemberStatus(_did);
+    }
     ///
 
 

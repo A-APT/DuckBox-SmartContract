@@ -12,13 +12,9 @@ contract("Group", function (accounts) {
     it("Confirm_group_creation", async function () {
         //arrange
         instance = await group.new(groupID, ownerDid);
-        
-        //act
-        let owner = await instance.owner();
 
         //check
         assert.equal(await instance.groupId().valueOf(), groupID, "Does not match groupId");
-        assert.equal(owner.valueOf(), ownerDid, "Does not match owner");
 
         let ownerStatus = await instance.members(ownerDid);
         assert.equal(ownerStatus, 3, "Group owner's valid is False");

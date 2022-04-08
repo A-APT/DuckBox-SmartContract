@@ -16,7 +16,6 @@ contract Group{
     }
 
     string public groupId;
-    bytes32 public owner; //group leader
     GroupStatus public status;
     
     mapping(bytes32 => MemberStatus) public members; //key: user did, value: Requester
@@ -25,7 +24,6 @@ contract Group{
 
     constructor(string memory _groupId, bytes32 _ownerDid) {
         groupId = _groupId;
-        owner = _ownerDid;
         members[_ownerDid] = MemberStatus.VALID;
 
         status = GroupStatus.INVALID;

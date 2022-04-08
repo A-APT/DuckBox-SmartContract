@@ -11,7 +11,7 @@ contract("Group", function (accounts) {
 
     it("Confirm_group_creation", async function () {
         //arrange
-        instance = await group.deployed();
+        instance = await group.new(groupID, ownerDid);
         
         //act
         let owner = await instance.owner();

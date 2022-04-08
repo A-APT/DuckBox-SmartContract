@@ -33,12 +33,12 @@ contract DuckBox {
 
 
     /// DecentralizedId
-    function registerDid(address _address, string memory _id) external {
-        did.registerId(_address, _id);
-    }
-    function removeDid(address _address) external {
-        did.removeId(_address);
-    }
+    // function registerDid(address _address, string memory _id) external {
+    //     did.registerId(_address, _id);
+    // }
+    // function removeDid(address _address) external {
+    //     did.removeId(_address);
+    // }
     ///
 
 

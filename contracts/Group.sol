@@ -16,14 +16,14 @@ contract Group{
     }
 
     string public groupId;
-    string public owner; //group leader
+    bytes32 public owner; //group leader
     GroupStatus public status;
     
-    mapping(string => MemberStatus) public members; //key: user did, value: Requester
+    mapping(bytes32 => MemberStatus) public members; //key: user did, value: Requester
 
     event groupAuthCompleted(string groupId);
 
-    constructor(string memory _groupId, string memory _ownerDid) {
+    constructor(string memory _groupId, bytes32 _ownerDid) {
         groupId = _groupId;
         owner = _ownerDid;
         members[_ownerDid] = MemberStatus.VALID;
@@ -40,7 +40,7 @@ contract Group{
     }
 
     //Request to join a group
-    function requestMember(string memory _userDid) onlyValidGroup external{
+    function requestMember(bytes32 _userDid) onlyValidGroup external{
         require(
             members[_userDid] == MemberStatus.INVALID,
             "Already request Member"
@@ -50,7 +50,7 @@ contract Group{
     }
 
     //mutual authentication
-    function approveMember(string memory _approverDid, string memory _requesterDid) onlyValidGroup external{
+    function approveMember(bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup external{
         //Check Approver Permissions
         require(
             members[_approverDid] == MemberStatus.VALID,
@@ -70,7 +70,7 @@ contract Group{
     }
 
     //Withdrawal
-    function exitMember(string memory _requesterDid) onlyValidGroup external {
+    function exitMember(bytes32 _requesterDid) onlyValidGroup external {
         //Check if requester is a member of the group
         require(
            members[_requesterDid] == MemberStatus.VALID,
@@ -81,7 +81,7 @@ contract Group{
     }
 
     //group authentication
-    function approveGroupAuthentication(string memory _approverDid) external{
+    function approveGroupAuthentication(bytes32 _approverDid) external{
         //Check if the group is already approved
         require(
            status != GroupStatus.VALID,

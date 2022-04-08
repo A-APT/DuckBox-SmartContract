@@ -26,6 +26,13 @@ contract DecentralizedId {
         return ids[_address].isValid;
     }
 
+    function checkDidValid(address _address, bytes32 did) public view returns (bool){
+        if(ids[_address].id == did)
+            return ids[_address].isValid;
+        else
+            return false;
+    }
+
     function registerId(address _address, bytes32 _id) onlyOwner external {
         require(
             checkRegistered(_address) == false,

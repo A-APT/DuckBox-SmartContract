@@ -2,6 +2,10 @@ const truffleAssert = require('truffle-assertions');
 const group = artifacts.require("Group");
 const ethers = require('ethers');
 
+// const contract = require('truffle-contract');
+// const TokenArtifact = require('../build/contracts/DecentralizedId.json');
+// var Token = contract(TokenArtifact);
+
 contract("Group", function (accounts) {
     let instance = null;
     const groupID = "groupId";
@@ -22,6 +26,11 @@ contract("Group", function (accounts) {
         let status = await instance.status();
         assert.equal(status, 0, "not equal status");
 
+        // if (typeof window !== "undefined"){
+        //     Token.setProvider(window.web3.currentProvider);
+        //     var tokenInstance = await Token.deployed();
+        //     console.log(tokenInstance.address);
+        // }
     });
 
     it("Request_to_join_before_completing_group_authentication", async () => {

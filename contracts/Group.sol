@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.9.0;
+import "./DecentralizedId.sol";
 
 contract Group{
     enum GroupStatus {
@@ -34,6 +35,17 @@ contract Group{
             status == GroupStatus.VALID,
             "This function is restricted to the Valid group"
         );
+        _;
+    }
+
+    modifier checkDid(address _contractAddr, bytes32 _did){
+        (bool success, bytes memory result) = _contractAddr.delegatecall(
+            abi.encodeWithSignature("checkDidValid(address, bytes32)", _contractAddr, _did));
+
+        require(success, "faild to transfer ether");
+        
+        bool flag = abi.decode(result, (bool));
+        require(flag, "Not equal Did");
         _;
     }
 

@@ -4,8 +4,6 @@ const ballot = artifacts.require("Ballot")
 
 contract("Ballot_verify blind signature", function (accounts) {
     let instance = null
-    let startTime = Math.floor(Date.now() / 1000) + 2
-    let endTime = startTime + 20
     it("is_verify_works_well", async function () {
         // get instance first
         instance = await ballot.deployed();

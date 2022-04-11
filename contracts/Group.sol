@@ -23,7 +23,7 @@ contract Group{
 
     event groupAuthCompleted(string groupId);
 
-    constructor(string memory _groupId, bytes32 _ownerDid) {
+    constructor(string memory _groupId, bytes32 _ownerDid, address _addr) checkDid(_addr, _ownerDid){ 
         groupId = _groupId;
         members[_ownerDid] = MemberStatus.VALID;
 
@@ -39,18 +39,15 @@ contract Group{
     }
 
     modifier checkDid(address _contractAddr, bytes32 _did){
-        (bool success, bytes memory result) = _contractAddr.delegatecall(
-            abi.encodeWithSignature("checkDidValid(address, bytes32)", _contractAddr, _did));
+        (bool success, bytes memory result) = _contractAddr.call(
+            abi.encodeWithSignature('checkDidValid(address,bytes32)', tx.origin, _did));
 
         require(success, "faild to transfer ether");
-        
-        bool flag = abi.decode(result, (bool));
-        require(flag, "Not equal Did");
         _;
     }
 
     //Request to join a group
-    function requestMember(bytes32 _userDid) onlyValidGroup external{
+    function requestMember(address _addr, bytes32 _userDid) onlyValidGroup checkDid(_addr, _userDid) external{
         require(
             members[_userDid] == MemberStatus.INVALID,
             "Already request Member"
@@ -60,7 +57,7 @@ contract Group{
     }
 
     //mutual authentication
-    function approveMember(bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup external{
+    function approveMember(address _addr, bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup checkDid(_addr, _approverDid)external{
         //Check Approver Permissions
         require(
             members[_approverDid] == MemberStatus.VALID,
@@ -80,7 +77,7 @@ contract Group{
     }
 
     //Withdrawal
-    function exitMember(bytes32 _requesterDid) onlyValidGroup external {
+    function exitMember(address _addr, bytes32 _requesterDid) onlyValidGroup checkDid(_addr, _requesterDid) external {
         //Check if requester is a member of the group
         require(
            members[_requesterDid] == MemberStatus.VALID,
@@ -91,7 +88,10 @@ contract Group{
     }
 
     //group authentication
-    function approveGroupAuthentication(bytes32 _approverDid) external{
+    function approveGroupAuthentication(
+        address _addr, 
+        bytes32 _approverDid
+        ) checkDid(_addr, _approverDid) external{
         //Check if the group is already approved
         require(
            status != GroupStatus.VALID,

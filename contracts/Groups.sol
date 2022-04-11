@@ -18,14 +18,15 @@ contract Groups {
 
     function registerGroup( //by owner
         string memory _groupId, 
-        bytes32 _ownerDid
+        bytes32 _ownerDid,
+        address _addr
     ) external{
         require(
             groups[_groupId].isValid == false,
             "Already registered group"
         );
         groups[_groupId].isValid = true;
-        groups[_groupId].group = new Group(_groupId, _ownerDid);
+        groups[_groupId].group = new Group(_groupId, _ownerDid, _addr);
         groups[_groupId].leader = _ownerDid;
     }
 
@@ -35,8 +36,12 @@ contract Groups {
     ) external{
         require(
             groups[_groupId].leader == _ownerDid,
-            "does not match owner did."
+            "does not match owner did"
         );
         delete groups[_groupId];
+    }
+
+    function getGroups(string memory _id) external view returns(GroupBox memory){
+        return groups[_id];
     }
 }

@@ -26,11 +26,12 @@ contract DecentralizedId {
         return ids[_address].isValid;
     }
 
-    function checkDidValid(address _address, bytes32 did) public view returns (bool){
-        if(ids[_address].id == did)
-            return ids[_address].isValid;
-        else
-            return false;
+    function checkDidValid(address _address, bytes32 did) public view{
+        require(did == ids[_address].id, "Not equal Did");
+    }
+
+    function getdid(address _address) public view returns (Id memory){
+        return ids[_address];
     }
 
     function registerId(address _address, bytes32 _id) onlyOwner external {
@@ -44,5 +45,9 @@ contract DecentralizedId {
 
     function removeId(address _address) onlyOwner external {
         delete ids[_address];
+    }
+
+    function getContractAddress() external view returns (address){
+        return address(this);
     }
 }

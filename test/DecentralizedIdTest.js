@@ -30,6 +30,16 @@ contract("DecentralizedId", function (accounts) {
             "Already registered address."
         );
     });
+
+    it("is_checkDidValid_work_well", async () => {
+        // arrange
+        let instance = await decentralizedId.deployed();
+        let userAddress = accounts[3];
+
+        //act
+        await instance.checkDidValid(userAddress, did);
+    });
+
     it("is_registerId_reverts_well", async () => {
         // arrange
         let instance = await decentralizedId.deployed();
@@ -57,6 +67,19 @@ contract("DecentralizedId", function (accounts) {
         let id = await instance.ids(userAddress);
         assert.equal(id.isValid, false);
     });
+
+    it("is_checkDidValid_work_well", async () => {
+        // arrange
+        let instance = await decentralizedId.deployed();
+        let userAddress = accounts[3];
+
+        //act, check
+        await truffleAssert.reverts(
+            instance.checkDidValid(userAddress, did),
+            "Not equal Did"
+        );
+    });
+    
     it("is_removeId_reverts_well", async () => {
         // arrange
         let instance = await decentralizedId.deployed();

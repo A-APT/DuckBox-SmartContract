@@ -11,22 +11,23 @@ contract Groups {
 
     mapping(string => GroupBox) groups; //key is groupId
     address public owner;
+    address public didAddress;
 
-    constructor() {
+    constructor(address _didAddress) {
         owner = tx.origin;
+        didAddress = _didAddress;
     }
 
     function registerGroup( //by owner
         string memory _groupId, 
-        bytes32 _ownerDid,
-        address _addr
+        bytes32 _ownerDid
     ) external{
         require(
             groups[_groupId].isValid == false,
             "Already registered group"
         );
         groups[_groupId].isValid = true;
-        groups[_groupId].group = new Group(_groupId, _ownerDid, _addr);
+        groups[_groupId].group = new Group(_groupId, _ownerDid, didAddress);
         groups[_groupId].leader = _ownerDid;
     }
 

@@ -16,8 +16,8 @@ contract("Groups", function (accounts) {
 
     it("is_constructor_works_well", async function () {
         // arrange
-        instance = await groups.new({from: owner});
-        didInstance = await decentralizedId.new();
+        instance = await groups.deployed();
+        didInstance = await decentralizedId.deployed();
 
         addr = await didInstance.getContractAddress();
         console.log(addr);
@@ -31,7 +31,7 @@ contract("Groups", function (accounts) {
         await didInstance.registerId(groupOwnerAddr, groupOwnerDID);
 
         // act
-        await instance.registerGroup(groupID, groupOwnerDID, addr, {from: groupOwnerAddr});
+        await instance.registerGroup(groupID, groupOwnerDID, {from: groupOwnerAddr});
 
         let group = await instance.getGroups(groupID);
         console.log(group);
@@ -40,7 +40,7 @@ contract("Groups", function (accounts) {
     it("is_registerGroup_reverts_duplicate_group", async () => {
         // act & assert
         await truffleAssert.reverts(
-            instance.registerGroup(groupID, groupOwnerDID, addr, {from: groupOwnerAddr}),
+            instance.registerGroup(groupID, groupOwnerDID, {from: groupOwnerAddr}),
             "Already registered group"
         );
     });

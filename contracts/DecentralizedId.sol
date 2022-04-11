@@ -30,10 +30,6 @@ contract DecentralizedId {
         require(did == ids[_address].id, "Not equal Did");
     }
 
-    function getdid(address _address) public view returns (Id memory){
-        return ids[_address];
-    }
-
     function registerId(address _address, bytes32 _id) onlyOwner external {
         require(
             checkRegistered(_address) == false,

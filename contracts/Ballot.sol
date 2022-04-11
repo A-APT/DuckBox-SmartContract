@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity >=0.6.0 <0.7.0;
+pragma experimental ABIEncoderV2;
+
+import "elliptic-curve-solidity/contracts/EllipticCurve.sol";
 
 contract Ballot {
     enum BallotStatus {
@@ -34,7 +37,7 @@ contract Ballot {
         uint256 _startTime, // milliseconds
         uint256 _endTime, // milliseconds
         string[] memory _voters
-    ) {
+    ) public {
         require(
             _startTime < _endTime && block.timestamp < _endTime,
             "The start time must be earlier than the end time."

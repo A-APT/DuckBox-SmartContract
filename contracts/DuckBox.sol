@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity >=0.6.0 <0.7.0;
+pragma experimental ABIEncoderV2;
+
 import "./DecentralizedId.sol";
 import "./Ballot.sol";
 import "./Group.sol";
@@ -10,7 +12,7 @@ contract DuckBox {
     mapping(string => Group) public groups;
     mapping(string => Ballot) public ballots;
 
-    constructor() {
+    constructor() public {
         owner = msg.sender;
         did = new DecentralizedId();
     }

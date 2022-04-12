@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0 <0.9.0;
+import "./DecentralizedId.sol";
 
 contract Group{
     enum GroupStatus {
@@ -16,19 +17,19 @@ contract Group{
     }
 
     string public groupId;
-    string public owner; //group leader
     GroupStatus public status;
+    address public didAddress;
     
-    mapping(string => MemberStatus) public members; //key: user did, value: Requester
+    mapping(bytes32 => MemberStatus) public members; //key: user did, value: Requester
 
     event groupAuthCompleted(string groupId);
 
-    constructor(string memory _groupId, string memory _ownerDid) {
+    constructor(string memory _groupId, bytes32 _ownerDid, address _didAddress) checkDid(_ownerDid){ 
         groupId = _groupId;
-        owner = _ownerDid;
         members[_ownerDid] = MemberStatus.VALID;
 
         status = GroupStatus.INVALID;
+        didAddress = _didAddress;
     }
 
     modifier onlyValidGroup{
@@ -39,8 +40,16 @@ contract Group{
         _;
     }
 
+    modifier checkDid(bytes32 _did){
+        (bool success, bytes memory result) = didAddress.call(
+            abi.encodeWithSignature('checkDidValid(address,bytes32)', tx.origin, _did));
+
+        require(success, "faild to transfer ether");
+        _;
+    }
+
     //Request to join a group
-    function requestMember(string memory _userDid) onlyValidGroup external{
+    function requestMember(bytes32 _userDid) onlyValidGroup checkDid(_userDid) external{
         require(
             members[_userDid] == MemberStatus.INVALID,
             "Already request Member"
@@ -50,7 +59,7 @@ contract Group{
     }
 
     //mutual authentication
-    function approveMember(string memory _approverDid, string memory _requesterDid) onlyValidGroup external{
+    function approveMember(bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup checkDid(_approverDid)external{
         //Check Approver Permissions
         require(
             members[_approverDid] == MemberStatus.VALID,
@@ -70,7 +79,7 @@ contract Group{
     }
 
     //Withdrawal
-    function exitMember(string memory _requesterDid) onlyValidGroup external {
+    function exitMember(bytes32 _requesterDid) onlyValidGroup checkDid(_requesterDid) external {
         //Check if requester is a member of the group
         require(
            members[_requesterDid] == MemberStatus.VALID,
@@ -81,7 +90,7 @@ contract Group{
     }
 
     //group authentication
-    function approveGroupAuthentication(string memory _approverDid) external{
+    function approveGroupAuthentication(bytes32 _approverDid) checkDid(_approverDid) external{
         //Check if the group is already approved
         require(
            status != GroupStatus.VALID,

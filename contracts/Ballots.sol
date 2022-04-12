@@ -21,7 +21,7 @@ contract Ballots {
         bool _isOfficial,
         uint256 _startTime, // milliseconds
         uint256 _endTime, // milliseconds
-        string[] memory _voters
+        bytes32[] memory _voters
     ) external returns (Ballot){
 
         require(

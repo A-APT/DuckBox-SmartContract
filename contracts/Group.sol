@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity >=0.6.0 <0.7.0;
+pragma experimental ABIEncoderV2;
 import "./DecentralizedId.sol";
 
 contract Group{
@@ -24,7 +25,7 @@ contract Group{
 
     event groupAuthCompleted(string groupId);
 
-    constructor(string memory _groupId, bytes32 _ownerDid, address _didAddress) checkDid(_ownerDid){ 
+    constructor(string memory _groupId, bytes32 _ownerDid, address _didAddress) checkDid(_ownerDid) public{
         groupId = _groupId;
         members[_ownerDid] = MemberStatus.VALID;
 

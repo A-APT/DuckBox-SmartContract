@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity >=0.6.0 <0.7.0;
+pragma experimental ABIEncoderV2;
 
 contract DecentralizedId {
     struct Id {
@@ -18,7 +19,7 @@ contract DecentralizedId {
         _;
     }
 
-    constructor() {
+    constructor() public {
         owner = tx.origin;
     }
 

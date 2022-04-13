@@ -8,7 +8,6 @@ contract Ballots {
         bool isValid;
         Ballot ballot;
         bytes32 chairpersonDid;
-        uint256 publicKey;
     }
 
     mapping(string => BallotBox) ballots;
@@ -30,7 +29,8 @@ contract Ballots {
 
     function registerBallot(
         bytes32 _chairpersonDid,
-        uint256 _publicKey,
+        uint256 _publicKeyX,
+        uint256 _publicKeyY,
         string memory _ballotId,
         string[] memory _candidateNames,
         bool _isOfficial,
@@ -45,9 +45,8 @@ contract Ballots {
         );
 
         ballots[_ballotId].isValid = true;
-        ballots[_ballotId].ballot = new Ballot(_candidateNames, _isOfficial, _startTime, _endTime, _voters);
+        ballots[_ballotId].ballot = new Ballot(_publicKeyX, _publicKeyY, _candidateNames, _isOfficial, _startTime, _endTime, _voters);
         ballots[_ballotId].chairpersonDid = _chairpersonDid;
-        ballots[_ballotId].publicKey = _publicKey;
 
         return ballots[_ballotId].ballot;
     }

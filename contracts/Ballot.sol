@@ -26,12 +26,16 @@ contract Ballot {
     address public chairperson; // or group
     uint256 public startTime; // milliseconds
     uint256 public endTime; // milliseconds
+    uint256 public publicKeyX;
+    uint256 public publicKeyY;
 
     mapping(bytes32 => Voter) public voters; // key is did
     Candidate[] private candidates;
 
     /// Create new ballot
     constructor(
+        uint256 _publicKeyX,
+        uint256 _publicKeyY,
         string[] memory _candidateNames,
         bool _isOfficial,
         uint256 _startTime, // milliseconds
@@ -46,6 +50,9 @@ contract Ballot {
         isOfficial = _isOfficial;
         startTime = _startTime;
         endTime = _endTime;
+
+        publicKeyX = _publicKeyX;
+        publicKeyY = _publicKeyY;
 
         /// Register candidates
         for (uint i=0; i<_candidateNames.length; i++) {

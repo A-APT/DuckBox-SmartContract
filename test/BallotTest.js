@@ -7,6 +7,8 @@ const voters = [ethers.utils.formatBytes32String("voter1"), ethers.utils.formatB
 const REGISTERED = 0;
 const OPEN = 1;
 const CLOSE = 2;
+const publicKeyX =  BigInt("0x6247d87a95d3f4ebeaf4c7ab79b9d9e9ef5b7c7f4c37c41f645c57e1e2f24631");
+const publicKeyY =  BigInt("0x6247d87a95d3f4ebeaf4c7ab79b9d9e9ef5b7c7f4c37c41f645c57e1e2f24631");
 
 contract("Ballot_official", function (accounts) {
     let instance = null;
@@ -14,7 +16,7 @@ contract("Ballot_official", function (accounts) {
     let endTime = startTime + 40;
     it("is_constructor_works_well", async function () {
         // get instance first
-        instance = await ballot.new(candidates, true, startTime, endTime, voters); // official ballot
+        instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters); // official ballot
         console.log(voters);
         // assert
         let chairperson = await instance.chairperson();
@@ -159,7 +161,7 @@ contract("Ballot_status", function (accounts) {
         // arrange & act
         let startTime = Math.floor(Date.now() / 1000) - 10;
         let endTime = Math.floor(Date.now() / 1000) + 10;
-        let instance = await ballot.new(candidates, true, startTime, endTime, voters);
+        let instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters);
 
         // assert
         let status = await instance.status();
@@ -173,7 +175,7 @@ contract("Ballot_status", function (accounts) {
 
         // act & assert
         try {
-            await ballot.new(candidates, true, startTime, endTime, voters);
+            await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters);
             assert.fail("This should be failed...");
         } catch (e) {
             assert.equal(e.message, "Returned error: base fee exceeds gas limit -- Reason given: The start time must be earlier than the end time..");
@@ -187,7 +189,7 @@ contract("Ballot_status", function (accounts) {
 
         // act & assert
         try {
-            await ballot.new(candidates, true, startTime, endTime, voters);
+            await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters);
             assert.fail("This should be failed...");
         } catch (e) {
             assert.equal(e.message, "Returned error: base fee exceeds gas limit -- Reason given: The start time must be earlier than the end time..");
@@ -198,7 +200,7 @@ contract("Ballot_status", function (accounts) {
         // arrange
         let startTime = Math.floor(Date.now() / 1000) + 100;
         let endTime = startTime + 200;
-        let instance = await ballot.new(candidates, true, startTime, endTime, voters);
+        let instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters);
 
         // assert
         await truffleAssert.reverts(
@@ -216,7 +218,7 @@ contract("Ballot_community", function (accounts) {
     it("is_constructor_works_well", async function () {
         // arrange
         // get instance first
-        instance = await ballot.new(candidates, false, startTime, endTime, voters);
+        instance = await ballot.new(publicKeyX, publicKeyY, candidates, false, startTime, endTime, voters);
 
         // assert
         let chairperson = await instance.chairperson();

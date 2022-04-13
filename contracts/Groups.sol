@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity >=0.6.0 <0.7.0;
 import "./Group.sol";
 
 contract Groups {
@@ -13,7 +13,7 @@ contract Groups {
     address public owner;
     address public didAddress;
 
-    constructor(address _didAddress) {
+    constructor(address _didAddress) public {
         owner = tx.origin;
         didAddress = _didAddress;
     }
@@ -40,9 +40,5 @@ contract Groups {
             "does not match owner did"
         );
         delete groups[_groupId];
-    }
-
-    function getGroups(string memory _id) external view returns(GroupBox memory){
-        return groups[_id];
     }
 }

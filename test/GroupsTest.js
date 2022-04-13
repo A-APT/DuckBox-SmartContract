@@ -32,9 +32,6 @@ contract("Groups", function (accounts) {
 
         // act
         await instance.registerGroup(groupID, groupOwnerDID, {from: groupOwnerAddr});
-
-        let group = await instance.getGroups(groupID);
-        console.log(group);
     });
 
     it("is_registerGroup_reverts_duplicate_group", async () => {
@@ -56,8 +53,5 @@ contract("Groups", function (accounts) {
     it("is_deleteGroup_works_well", async () => {
         // act
         await instance.deleteGroup(groupID, groupOwnerDID);
-
-        let group = await instance.getGroups(groupID);
-        console.log(group);
     });
 });

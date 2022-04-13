@@ -15,6 +15,7 @@ contract("Ballots", function (accounts) {
     let voters = [ethers.utils.formatBytes32String("voter1"), ethers.utils.formatBytes32String("voter2")];
     let chairpersonDid = ethers.utils.formatBytes32String("chairpersonDid");
     let chairperson = accounts[1];
+    let publicKey =  BigInt("0x6247d87a95d3f4ebeaf4c7ab79b9d9e9ef5b7c7f4c37c41f645c57e1e2f24631");
 
     it("is_constructor_works_well", async function () {
         // get instance first
@@ -28,7 +29,7 @@ contract("Ballots", function (accounts) {
         // act
         await truffleAssert.reverts(
             instance.registerBallot(
-                chairpersonDid, ballotId, candidates, true, startTime, endTime, voters, 
+                chairpersonDid, publicKey, ballotId, candidates, true, startTime, endTime, voters, 
                 {from: chairperson}
             ),
             "faild to transfer ether"
@@ -42,7 +43,7 @@ contract("Ballots", function (accounts) {
 
         // act
         await instance.registerBallot(
-            chairpersonDid, ballotId, candidates, true, startTime, endTime, voters,
+            chairpersonDid, publicKey, ballotId, candidates, true, startTime, endTime, voters,
             {from: chairperson}
         );
         await instance.getBallot(ballotId);
@@ -52,7 +53,7 @@ contract("Ballots", function (accounts) {
         // act & assert
         await truffleAssert.reverts(
             instance.registerBallot(
-                chairpersonDid, ballotId, candidates, true, startTime, endTime, voters, 
+                chairpersonDid, publicKey, ballotId, candidates, true, startTime, endTime, voters, 
                 {from: chairperson}
             ),
             "Already registered ballot (id)."

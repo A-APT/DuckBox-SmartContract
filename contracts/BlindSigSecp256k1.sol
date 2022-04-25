@@ -13,18 +13,35 @@ library BlindSigSecp256k1 {
     uint256 constant PUBKEYx =   0xd7bf79fbdfa2c473d86d2f5fb325c05a3f9815c6b6e3bd7c1b61780651be8be7;
     uint256 constant PUBKEYy =   0x79a09b8427069518535389161410ae45643588fd945919b9f53f6e1a5b98554f;
 
-    function verifySig(bytes memory m, uint256 sig, uint256[2] memory R) external pure {
+    function verifySig(bytes memory _m, uint256 _sig, uint256[2] memory _R) public pure {
         // calculate left-side
         uint256[2] memory left;
-        (left[0], left[1]) = EllipticCurve.ecMul(sig, Gx, Gy, A, P); // sG
+        (left[0], left[1]) = EllipticCurve.ecMul(_sig, Gx, Gy, A, P); // sG
 
         // calculate right-side
-        uint256 h = uint(keccak256(m));
-        uint256 a = mulmod(R[0], h, N); // (Rx * h) % N
+        uint256 h = uint(keccak256(_m));
+        uint256 a = mulmod(_R[0], h, N); // (Rx * h) % N
         uint256[2] memory b;
         (b[0], b[1]) = EllipticCurve.ecMul(a, PUBKEYx, PUBKEYy, A, P);
         uint256[2] memory right;
-        (right[0], right[1]) = EllipticCurve.ecAdd(R[0], R[1], b[0], b[1], A, P); // R + xRh(m)Pub
+        (right[0], right[1]) = EllipticCurve.ecAdd(_R[0], _R[1], b[0], b[1], A, P); // R + xRh(m)Pub
+
+        require(left[0] == right[0], "Verify went wrong: x");
+        require(left[1] == right[1], "Verify went wrong: y");
+    }
+
+    function verifySig(bytes memory _m, uint256 _sig, uint256[2] memory _R, uint256[2] memory _PUBKEY) public pure {
+        // calculate left-side
+        uint256[2] memory left;
+        (left[0], left[1]) = EllipticCurve.ecMul(_sig, Gx, Gy, A, P); // sG
+
+        // calculate right-side
+        uint256 h = uint(keccak256(_m));
+        uint256 a = mulmod(_R[0], h, N); // (Rx * h) % N
+        uint256[2] memory b;
+        (b[0], b[1]) = EllipticCurve.ecMul(a, _PUBKEY[0], _PUBKEY[1], A, P);
+        uint256[2] memory right;
+        (right[0], right[1]) = EllipticCurve.ecAdd(_R[0], _R[1], b[0], b[1], A, P); // R + xRh(m)Pub
 
         require(left[0] == right[0], "Verify went wrong: x");
         require(left[1] == right[1], "Verify went wrong: y");

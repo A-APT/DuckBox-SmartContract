@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0 <0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 import "./Ballot.sol";
 
 contract Ballots {
@@ -11,7 +10,7 @@ contract Ballots {
     mapping(string => BallotBox) ballots;
     address public owner;
 
-    constructor() public {
+    constructor() {
         owner = tx.origin;
     }
 

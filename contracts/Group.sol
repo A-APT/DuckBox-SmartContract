@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0 <0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 contract Group{
     enum GroupStatus {
@@ -24,7 +23,7 @@ contract Group{
 
     event groupAuthCompleted(string groupId);
 
-    constructor(string memory _groupId, string memory _ownerDid) public {
+    constructor(string memory _groupId, string memory _ownerDid) {
         groupId = _groupId;
         owner = _ownerDid;
         members[_ownerDid] = MemberStatus.VALID;

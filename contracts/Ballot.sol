@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0 <0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 import "./BlindSigSecp256k1.sol";
 
@@ -37,7 +36,7 @@ contract Ballot {
         uint256 _startTime, // milliseconds
         uint256 _endTime, // milliseconds
         string[] memory _voters
-    ) public {
+    ) {
         require(
             _startTime < _endTime && block.timestamp < _endTime,
             "The start time must be earlier than the end time."
@@ -123,11 +122,7 @@ contract Ballot {
         candidates_ = candidates;
     }
 
-    function verifySig(bytes memory m, uint256 sig) external view {
-        BlindSigSecp256k1.verifySig(m, sig);
-    }
-
-    function verifySig(bytes memory m, uint256 sig, uint256[2] memory R) external view {
+    function verifySig(bytes memory m, uint256 sig, uint256[2] memory R) external pure {
         BlindSigSecp256k1.verifySig(m, sig, R);
     }
 }

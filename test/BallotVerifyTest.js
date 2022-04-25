@@ -7,17 +7,20 @@ contract("Ballot_verify blind signature", function (accounts) {
     it("is_verify_works_well", async function () {
         // get instance first
         instance = await ballot.deployed();
-        let m = web3.utils.fromUtf8("test")
-        let sig = BigInt("0x6247d87a95d3f4ebeaf4c7ab79b9d9e9ef5b7c7f4c37c41f645c57e1e2f24631")
-        await instance.verifySig(m, sig, {gas:3000000});
+        let m = web3.utils.fromUtf8("0")
+        let sig = BigInt("0x11e7b80d6e93e4e05046ceeecf7d455df4a5979ce4d591745cf271db6b32aea3")
+        let Rx = BigInt("0x77ed80d9de7c800fd4a2b78d67b5dcfc18fad6e076356f10b2fb91bb8577320a")
+        let Ry = BigInt("0xc1f3dd157fc5e9a7b96461723a20f28f12917ceca4a2c59d59c8d3adf5681cc9")
+        await instance.verifySig(m, sig, [Rx, Ry], {gas: 30000000});
     })
-    it("is_verify_works_well_with_specify_R", async function () {
-        // get instance first
-        instance = await ballot.deployed();
-        let m = web3.utils.fromUtf8("test")
-        let sig = BigInt("0x6247d87a95d3f4ebeaf4c7ab79b9d9e9ef5b7c7f4c37c41f645c57e1e2f24631")
-        let Rx = BigInt("0x546233c90e9a195806cd68b53255c075e17ab65b87d86cfa3c964b92b303b80e")
-        let Ry = BigInt("0x1ae318011cffbd3cff2e1e9df8cdc1b48d291dc1c3cb93e1ef74104d0625483c")
-        await instance.verifySig(m, sig, [Rx, Ry], {gas:3000000});
+    it("is_verify_reverts_when_invalid_sig", async function () {
+        let m = web3.utils.fromUtf8("0")
+        let sig = BigInt("0x11e7b80d6e93e4e05046ceeecf7d455df4a5979ce4d591745cf271db6b32ae03")
+        let Rx = BigInt("0x77ed80d9de7c800fd4a2b78d67b5dcfc18fad6e076356f10b2fb91bb8577320a")
+        let Ry = BigInt("0xc1f3dd157fc5e9a7b96461723a20f28f12917ceca4a2c59d59c8d3adf5681cc9")
+        await truffleAssert.reverts(
+            instance.verifySig(m, sig, [Rx, Ry], {gas: 30000000}),
+            "revert Verify went wrong: x"
+        );
     })
 })

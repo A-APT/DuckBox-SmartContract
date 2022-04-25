@@ -58,4 +58,19 @@ contract Ballots {
         );
         return ballotBox.ballot;
     }
+
+    function vote(
+        string memory _ballotId,
+        bytes memory _m,
+        uint256 _serverSig,
+        uint256 _ownerSig,
+        uint256[2] memory R
+    ) external {
+        BallotBox memory ballotBox = ballots[_ballotId];
+        require(
+            ballotBox.isValid == true,
+            "Unregistered ballot (id)."
+        );
+        ballotBox.ballot.vote(_m, _serverSig, _ownerSig, R);
+    }
 }

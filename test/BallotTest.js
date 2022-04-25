@@ -7,8 +7,8 @@ const voters = [ethers.utils.formatBytes32String("voter1"), ethers.utils.formatB
 const REGISTERED = 0;
 const OPEN = 1;
 const CLOSE = 2;
-const publicKeyX =  BigInt("0x6247d87a95d3f4ebeaf4c7ab79b9d9e9ef5b7c7f4c37c41f645c57e1e2f24631");
-const publicKeyY =  BigInt("0x6247d87a95d3f4ebeaf4c7ab79b9d9e9ef5b7c7f4c37c41f645c57e1e2f24631");
+let publicKeyX = BigInt("0x4719ded852f84728c0e25e2a7111e880f4ef516155f62e3db82be7b2981b0323")
+let publicKeyY = BigInt("0xe84813d29f2125b707bc94244aec3c3d52a8025b5f7c988c92736daa22a621ac")
 
 contract("Ballot_official", function (accounts) {
     let instance = null;
@@ -17,7 +17,7 @@ contract("Ballot_official", function (accounts) {
     it("is_constructor_works_well", async function () {
         // get instance first
         instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters); // official ballot
-        console.log(voters);
+
         // assert
         let chairperson = await instance.chairperson();
         assert.equal(chairperson.valueOf(), accounts[0], "accounts[0] wasn't the contract owner(chairperson).");
@@ -52,14 +52,6 @@ contract("Ballot_official", function (accounts) {
         );
     });
 
-    it("is_vote_reverts_not_on_open", async () => {
-        // act, assert: check revert when not OPEN status
-        await truffleAssert.reverts(
-            instance.vote(0, ethers.utils.formatBytes32String("anyone")),
-            "Vote is allowed at Ballot is OPEN."
-        );
-    });
-
     it("is_close_reverts_not_on_OPEN", async () => {
         // act, assert: check revert when not on OPEN status
         await truffleAssert.reverts(
@@ -91,43 +83,14 @@ contract("Ballot_official", function (accounts) {
         );
     });
 
-    it("is_vote_works_well", async () => {
-        // arrange
-        let notOwner = accounts[2];
-
-        // act
-        await instance.vote(0, voters[0], {from: notOwner});
-
-        // assert
-        let voter = await instance.voters(voters[0]);
-        assert.equal(voter.right, true);
-        assert.equal(voter.voted, true);
-
-        // TODO check candidate voteCount: ?
-    });
-
-    it("is_vote_reverts_when_already_voted", async () => {
-        // act, assert: check revert when already voted voter
-        await truffleAssert.reverts(
-            instance.vote(0, voters[0]),
-            "Already voted."
-        );
-    });
-
-    it("is_vote_reverts_when_no_right_to_vote", async () => {
-        // act, assert: check revert when no right to vote
-        await truffleAssert.reverts(
-            instance.vote(0, ethers.utils.formatBytes32String("anyone")),
-            "Has no right to vote."
-        );
-    });
-
-    it("is_vote_reverts_when_invalid_candidate", async () => {
-        // act, assert: check revert when already voted voter
-        await truffleAssert.reverts(
-            instance.vote(2, voters[1])
-        );
-    });
+    it("is_vote_works_well", async function () {
+        let m = web3.utils.fromUtf8("0")
+        let serverSig = BigInt("0x11e7b80d6e93e4e05046ceeecf7d455df4a5979ce4d591745cf271db6b32aea3")
+        let ownerSig = BigInt("0xc466193572e1b5d2e63f503b69060b277055dbe1cb475819df4c282e9d68000a")
+        let Rx = BigInt("0x77ed80d9de7c800fd4a2b78d67b5dcfc18fad6e076356f10b2fb91bb8577320a")
+        let Ry = BigInt("0xc1f3dd157fc5e9a7b96461723a20f28f12917ceca4a2c59d59c8d3adf5681cc9")
+        await instance.vote(m, serverSig, ownerSig, [Rx, Ry]);
+    })
 
     it("is_close_reverts_before_endTime", async () => {
         // act, assert: check revert when not owner(chairperson)
@@ -234,17 +197,44 @@ contract("Ballot_community", function (accounts) {
             assert.equal(v.right, false);
         }
     });
-
-    it("is_vote_works_well", async () => {
-        // act
-        let user = ethers.utils.formatBytes32String("user");
-        await instance.vote(0, user);
-
-        // assert
-        let voter = await instance.voters(user);
-        assert.equal(voter.right, false);
-        assert.equal(voter.voted, true);
-
-        // TODO check candidate voteCount: ?
-    });
 });
+
+contract("Ballot:: vote", function (accounts) {
+    let instance = null;
+    let startTime = Math.floor(Date.now() / 1000) - 10;
+    let endTime = startTime + 40000;
+
+    it("is_vote_works_well", async function () {
+        // get instance first
+        instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters); // official ballot;
+        let m = web3.utils.fromUtf8("0")
+        let serverSig = BigInt("0x11e7b80d6e93e4e05046ceeecf7d455df4a5979ce4d591745cf271db6b32aea3")
+        let ownerSig = BigInt("0xc466193572e1b5d2e63f503b69060b277055dbe1cb475819df4c282e9d68000a")
+        let Rx = BigInt("0x77ed80d9de7c800fd4a2b78d67b5dcfc18fad6e076356f10b2fb91bb8577320a")
+        let Ry = BigInt("0xc1f3dd157fc5e9a7b96461723a20f28f12917ceca4a2c59d59c8d3adf5681cc9")
+        await instance.vote(m, serverSig, ownerSig, [Rx, Ry]);
+    })
+    it("is_vote_reverts_when_invalid_sig", async function () {
+        let m = web3.utils.fromUtf8("0")
+        let serverSig = BigInt("0x11e7b80d6e93e4e05046ceeecf7d455df4a5979ce4d591745cf271db6b32aea3")
+        let ownerSig = BigInt("0xc466193572e1b5d2e63f503b69060b277055dbe1cb475819df4c282e9d680000")
+        let Rx = BigInt("0x77ed80d9de7c800fd4a2b78d67b5dcfc18fad6e076356f10b2fb91bb8577320a")
+        let Ry = BigInt("0xc1f3dd157fc5e9a7b96461723a20f28f12917ceca4a2c59d59c8d3adf5681cc9")
+        try {
+            await instance.vote(m, serverSig, ownerSig, [Rx, Ry], {gas: 30000000})
+            assert.fail("This should be failed...");
+        } catch (e) {
+            assert.equal(e.message, "Returned error: Exceeds block gas limit -- Reason given: Verify went wrong: x.");
+        }
+    })
+
+    it("is_vote_reverts_not_on_open", async () => {
+        let instance2 = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime + 20000, endTime, voters); // official ballot;
+
+        // act, assert: check revert when not OPEN status
+        await truffleAssert.reverts(
+            instance2.vote("0x00", "0x01", "0x02", ["0x03", "0x04"]),
+            "Vote is allowed at Ballot is OPEN."
+        );
+    });
+})

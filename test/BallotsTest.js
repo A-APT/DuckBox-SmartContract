@@ -16,9 +16,8 @@ contract("Ballots", function (accounts) {
     let chairpersonDid = ethers.utils.formatBytes32String("chairpersonDid");
     let chairperson = accounts[1];
 
-    
-    let publicKeyX =  BigInt("0x6247d87a95d3f4ebeaf4c7ab79b9d9e9ef5b7c7f4c37c41f645c57e1e2f24631");
-    let publicKeyY =  BigInt("0x6247d87a95d3f4ebeaf4c7ab79b9d9e9ef5b7c7f4c37c41f645c57e1e2f24631");
+    let publicKeyX = BigInt("0x4719ded852f84728c0e25e2a7111e880f4ef516155f62e3db82be7b2981b0323")
+    let publicKeyY = BigInt("0xe84813d29f2125b707bc94244aec3c3d52a8025b5f7c988c92736daa22a621ac")
 
     it("is_constructor_works_well", async function () {
         // get instance first
@@ -67,6 +66,27 @@ contract("Ballots", function (accounts) {
         // act & assert
         await truffleAssert.reverts(
             instance.getBallot("invalid ballot id"),
+            "Unregistered ballot (id)."
+        );
+    });
+
+    it("is_vote_works_well", async () => {
+        //arrange
+        //didInstance = await decentralizedId.deployed();
+        //await didInstance.registerId(chairperson, chairpersonDid);
+        let m = web3.utils.fromUtf8("0")
+        let serverSig = BigInt("0x11e7b80d6e93e4e05046ceeecf7d455df4a5979ce4d591745cf271db6b32aea3")
+        let ownerSig = BigInt("0xc466193572e1b5d2e63f503b69060b277055dbe1cb475819df4c282e9d68000a")
+        let Rx = BigInt("0x77ed80d9de7c800fd4a2b78d67b5dcfc18fad6e076356f10b2fb91bb8577320a")
+        let Ry = BigInt("0xc1f3dd157fc5e9a7b96461723a20f28f12917ceca4a2c59d59c8d3adf5681cc9")
+
+        instance.vote(ballotId, m, serverSig, ownerSig, [Rx, Ry]);
+    });
+
+    it("is_vote_reverts_invalid_ballotId", async () => {
+        // act & assert
+        await truffleAssert.reverts(
+            instance.vote("invalid ballot id", "0x00", "0x01", "0x02", ["0x03", "0x04"]),
             "Unregistered ballot (id)."
         );
     });

@@ -96,21 +96,6 @@ contract Ballot {
         else return false;
     }
 
-    function vote(uint _vote, bytes32 did) external {
-        require( // only called one time
-            status == BallotStatus.OPEN,
-            "Vote is allowed at Ballot is OPEN."
-        );
-
-        Voter storage sender = voters[did]; // can be anonymous??
-        if(isOfficial) require(sender.right, "Has no right to vote.");
-        require(!sender.voted, "Already voted.");
-        sender.voted = true;
-
-        // * WHEN array out of bounds: throw automatically and revert all changes
-        candidates[_vote].voteCount += 1; // weight is always 1
-    }
-
     function open() external {
         if(checkTimeForStart()) status = BallotStatus.OPEN;
         else revert("Before the start time.");
@@ -129,7 +114,18 @@ contract Ballot {
         candidates_ = candidates;
     }
 
-    function verifySig(bytes memory m, uint256 sig, uint256[2] memory R) external pure {
-        BlindSigSecp256k1.verifySig(m, sig, R);
+    function vote(bytes memory _m, uint256 _serverSig, uint256 _ownerSig, uint256[2] memory R) external {
+        require(
+            status == BallotStatus.OPEN,
+            "Vote is allowed at Ballot is OPEN."
+        );
+
+        // verify signature
+        BlindSigSecp256k1.verifySig(_m, _serverSig, R);                             // verify signature of server signature
+        BlindSigSecp256k1.verifySig(_m, _ownerSig, R, [publicKeyX, publicKeyY]);    // verify signature of ballot owner
+
+        // * WHEN array out of bounds: throw automatically and revert all changes
+        uint256 m = uint(uint8(_m[0])) - 48;
+        candidates[m].voteCount += 1; // weight is always 1
     }
 }

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 contract DecentralizedId {
     struct Id {
-        string id;
+        bytes32 id;
         bool isValid;
     }
 
@@ -26,7 +26,11 @@ contract DecentralizedId {
         return ids[_address].isValid;
     }
 
-    function registerId(address _address, string memory _id) onlyOwner external {
+    function checkDidValid(address _address, bytes32 did) public view{
+        require(did == ids[_address].id, "Not equal Did");
+    }
+
+    function registerId(address _address, bytes32 _id) onlyOwner external {
         require(
             checkRegistered(_address) == false,
             "Already registered address."
@@ -37,5 +41,9 @@ contract DecentralizedId {
 
     function removeId(address _address) onlyOwner external {
         delete ids[_address];
+    }
+
+    function getContractAddress() external view returns (address){
+        return address(this);
     }
 }

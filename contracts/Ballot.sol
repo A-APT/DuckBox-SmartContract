@@ -25,17 +25,21 @@ contract Ballot {
     address public chairperson; // or group
     uint256 public startTime; // milliseconds
     uint256 public endTime; // milliseconds
+    uint256 public publicKeyX;
+    uint256 public publicKeyY;
 
-    mapping(string => Voter) public voters; // key is did
+    mapping(bytes32 => Voter) public voters; // key is did
     Candidate[] private candidates;
 
     /// Create new ballot
     constructor(
+        uint256 _publicKeyX,
+        uint256 _publicKeyY,
         string[] memory _candidateNames,
         bool _isOfficial,
         uint256 _startTime, // milliseconds
         uint256 _endTime, // milliseconds
-        string[] memory _voters
+        bytes32[] memory _voters
     ) {
         require(
             _startTime < _endTime && block.timestamp < _endTime,
@@ -45,6 +49,9 @@ contract Ballot {
         isOfficial = _isOfficial;
         startTime = _startTime;
         endTime = _endTime;
+
+        publicKeyX = _publicKeyX;
+        publicKeyY = _publicKeyY;
 
         /// Register candidates
         for (uint i=0; i<_candidateNames.length; i++) {
@@ -58,7 +65,7 @@ contract Ballot {
         // give rights if official ballot, else discard 'voters'
         if (isOfficial) {
             for (uint i=0; i<_voters.length; i++) {
-                string memory newVoter = _voters[i];
+                bytes32 newVoter = _voters[i];
                 voters[newVoter].right = true; // give right
                 // voters[newVoter].voted = false; // default is false
             }
@@ -89,7 +96,7 @@ contract Ballot {
         else return false;
     }
 
-    function vote(uint _vote, string memory did) external {
+    function vote(uint _vote, bytes32 did) external {
         require( // only called one time
             status == BallotStatus.OPEN,
             "Vote is allowed at Ballot is OPEN."

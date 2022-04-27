@@ -32,7 +32,7 @@ contract("Group", function (accounts) {
         assert.equal(await instance.groupId().valueOf(), groupID, "Does not match groupId");
 
         let ownerStatus = await instance.members(ownerDid);
-        assert.equal(ownerStatus, 3, "Group owner's valid is False");
+        assert.equal(ownerStatus, true, "Group owner's valid is False");
 
         let status = await instance.status();
         assert.equal(status, 0, "not equal status");
@@ -72,7 +72,7 @@ contract("Group", function (accounts) {
         assert.equal(status, 1, "not equal status");
 
         let groupApprover1Status = await instance.members(approverDid[0]);
-        assert.equal(groupApprover1Status, 3, "not equal status");
+        assert.equal(groupApprover1Status, true, "not equal status");
 
         // check event: not emitted when group status changed to WAITING
         truffleAssert.eventNotEmitted(tx, 'groupAuthCompleted');
@@ -105,7 +105,7 @@ contract("Group", function (accounts) {
         assert.equal(status, 2, "not equal status");
 
         let groupApprover2Status = await instance.members(approverDid[1]);
-        assert.equal(groupApprover2Status, 3, "not equal status");
+        assert.equal(groupApprover2Status, true, "not equal status");
 
         // check event: emit event when group status changed to VALID
         truffleAssert.eventEmitted(tx, 'groupAuthCompleted', (ev) => {
@@ -128,8 +128,8 @@ contract("Group", function (accounts) {
         await instance.requestMember(userDid[0], {from: user[0]});
 
         //check
-        let status = await instance.members(userDid[0]);
-        assert.equal(status, 1, "not equal status");
+        let status = await instance.getRequesterVaild(0);
+        assert.equal(status, false, "not equal status");
     });
 
     it("Approved_to_join_the_group_by_1_person", async() => {
@@ -137,8 +137,8 @@ contract("Group", function (accounts) {
         await instance.approveMember(approverDid[0], userDid[0], {from: approver[0]});
     
         //check
-        let status = await instance.members(userDid[0]);
-        assert.equal(status, 2, "not equal status");
+        let status = await instance.getRequesterVaild(0);
+        assert.equal(status, true, "not equal status");
     });
 
     it("Approved_to_join_the_group_if_the_approver_does_not_have_the_authority", async() => {
@@ -154,7 +154,7 @@ contract("Group", function (accounts) {
 
         //check
         let status = await instance.members(userDid[0]);
-        assert.equal(status, 3, "not equal status");
+        assert.equal(status, true, "not equal status");
     });
 
     it("Approved_to_join_the_group_if_already_approved", async() => {
@@ -181,6 +181,6 @@ contract("Group", function (accounts) {
 
         //check
         let status = await instance.members(userDid[0]);
-        assert.equal(status, 0, "not equal status");
+        assert.equal(status, false, "not equal status");
     });
 });

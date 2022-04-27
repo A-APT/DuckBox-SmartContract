@@ -41,4 +41,45 @@ contract Groups {
         );
         delete groups[_groupId];
     }
+
+    //Group function
+    function requestMember(string memory _groupId, bytes32 _userDid) external{
+        GroupBox memory groupBox = groups[_groupId];
+        require(
+            groupBox.isValid == true,
+            "Unregistered group (id)."
+        );
+
+        groupBox.group.requestMember(_userDid);
+    }
+
+    function approveMember(string memory _groupId, bytes32 _approverDid, bytes32 _requesterDid) external{
+        GroupBox memory groupBox = groups[_groupId];
+        require(
+            groupBox.isValid == true,
+            "Unregistered group (id)."
+        );
+
+        groupBox.group.approveMember(_approverDid, _requesterDid);
+    }
+
+    function exitMember(string memory _groupId, bytes32 _requesterDid) external{
+        GroupBox memory groupBox = groups[_groupId];
+        require(
+            groupBox.isValid == true,
+            "Unregistered group (id)."
+        );
+
+        groupBox.group.exitMember(_requesterDid);
+    }
+
+    function approveGroupAuthentication(string memory _groupId, bytes32 _approverDid) external{
+        GroupBox memory groupBox = groups[_groupId];
+        require(
+            groupBox.isValid == true,
+            "Unregistered group (id)."
+        );
+
+        groupBox.group.approveGroupAuthentication(_approverDid);
+    }
 }

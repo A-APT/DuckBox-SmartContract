@@ -5,7 +5,7 @@ const Ballots = artifacts.require("Ballots");
 module.exports = function (deployer){
     deployer.deploy(DecentralizedId).then(function(){
         return deployer.deploy(Groups, DecentralizedId.address).then(function(){
-            return deployer.deploy(Ballots, DecentralizedId.address);
+            // return deployer.deploy(Ballots, DecentralizedId.address);
         });
     });
 };

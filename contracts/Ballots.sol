@@ -17,7 +17,15 @@ contract Ballots {
         owner = tx.origin;
         didAddress = _didAddress;
     }
-    
+
+    modifier onlyOwner {
+        require(
+            owner == tx.origin,
+            "This function is restricted to the contract's owner."
+        );
+        _;
+    }
+
     modifier checkDid(bytes32 _did){
         (bool success, bytes memory result) = didAddress.call(
             abi.encodeWithSignature('checkDidValid(address,bytes32)', tx.origin, _did));
@@ -57,6 +65,18 @@ contract Ballots {
             "Unregistered ballot (id)."
         );
         return ballotBox.ballot;
+    }
+
+    function open(string memory _ballotId) external {
+        ballots[_ballotId].ballot.open();
+    }
+
+    function close(string memory _ballotId, uint256 _totalNum) onlyOwner external {
+        ballots[_ballotId].ballot.close(_totalNum);
+    }
+
+    function resultOfBallot(string memory _ballotId) external view returns (Ballot.Candidate[] memory candidates_) {
+        candidates_ = ballots[_ballotId].ballot.resultOfBallot();
     }
 
     function vote(

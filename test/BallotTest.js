@@ -93,7 +93,6 @@ contract("Ballot_official", function (accounts) {
     })
 
     it("is_close_reverts_totalNum_is_not_the_same", async () => {
-        // act, assert: check revert when not owner(chairperson)
         await truffleAssert.reverts(
             instance.close(0),
             "Number of signature and vote count is not the same"
@@ -101,7 +100,7 @@ contract("Ballot_official", function (accounts) {
     });
 
     it("is_close_reverts_before_endTime", async () => {
-        // act, assert: check revert when not owner(chairperson)
+        // act, assert: check revert when before the end time
         await truffleAssert.reverts(
             instance.close(1),
             "Before the end time."

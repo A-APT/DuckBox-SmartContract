@@ -55,7 +55,7 @@ contract("Ballot_official", function (accounts) {
     it("is_close_reverts_not_on_OPEN", async () => {
         // act, assert: check revert when not on OPEN status
         await truffleAssert.reverts(
-            instance.close(),
+            instance.close(0),
             "This function can be called only at OPEN status."
         );
     });
@@ -92,10 +92,18 @@ contract("Ballot_official", function (accounts) {
         await instance.vote(m, serverSig, ownerSig, [Rx, Ry]);
     })
 
+    it("is_close_reverts_totalNum_is_not_the_same", async () => {
+        // act, assert: check revert when not owner(chairperson)
+        await truffleAssert.reverts(
+            instance.close(0),
+            "Number of signature and vote count is not the same"
+        );
+    });
+
     it("is_close_reverts_before_endTime", async () => {
         // act, assert: check revert when not owner(chairperson)
         await truffleAssert.reverts(
-            instance.close(),
+            instance.close(1),
             "Before the end time."
         );
         assert.equal(await instance.status(), OPEN);
@@ -106,7 +114,7 @@ contract("Ballot_official", function (accounts) {
         await new Promise(resolve => setTimeout(resolve, 30000));
 
         // act
-        await instance.close();
+        await instance.close(1);
         let result = await instance.resultOfBallot();
 
         // aseert

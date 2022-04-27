@@ -104,7 +104,14 @@ contract Ballot {
         else revert("Before the start time.");
     }
 
-    function close() external {
+    function close(uint256 _totalNum) external {
+        // Verify the number of signature and vote count is the same
+        uint256 totalNum = 0;
+        for (uint i=0; i<candidates.length; i++) {
+            totalNum = totalNum + candidates[i].voteCount;
+        }
+        require(totalNum == _totalNum, "Number of signature and vote count is not the same");
+
         if(checkTimeForEnd()) status = BallotStatus.CLOSE;
         else revert("Before the end time.");
     }

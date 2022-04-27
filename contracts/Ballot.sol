@@ -31,6 +31,9 @@ contract Ballot {
     mapping(bytes32 => Voter) public voters; // key is did
     Candidate[] private candidates;
 
+    mapping(uint256 => bool) public serverSig;  // Avoiding Double Voting
+    mapping(uint256 => bool) public ownerSig;   // Avoiding Double Voting
+
     /// Create new ballot
     constructor(
         uint256 _publicKeyX,
@@ -119,6 +122,8 @@ contract Ballot {
             status == BallotStatus.OPEN,
             "Vote is allowed at Ballot is OPEN."
         );
+        require(serverSig[_serverSig] == false, "The server signature has already been used.");
+        require(ownerSig[_ownerSig] == false, "The owner signature has already been used.");
 
         // verify signature
         BlindSigSecp256k1.verifySig(_m, _serverSig, R);                             // verify signature of server signature
@@ -127,5 +132,9 @@ contract Ballot {
         // * WHEN array out of bounds: throw automatically and revert all changes
         uint256 m = uint(uint8(_m[0])) - 48;
         candidates[m].voteCount += 1; // weight is always 1
+
+        // Avoiding Double Voting
+        serverSig[_serverSig] = true;
+        ownerSig[_ownerSig] = true;
     }
 }

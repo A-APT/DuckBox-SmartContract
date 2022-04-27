@@ -216,12 +216,10 @@ contract("Ballot:: vote", function (accounts) {
     })
     it("is_vote_reverts_when_invalid_sig", async function () {
         let m = web3.utils.fromUtf8("0")
-        let serverSig = BigInt("0x11e7b80d6e93e4e05046ceeecf7d455df4a5979ce4d591745cf271db6b32aea3")
-        let ownerSig = BigInt("0xc466193572e1b5d2e63f503b69060b277055dbe1cb475819df4c282e9d680000")
         let Rx = BigInt("0x77ed80d9de7c800fd4a2b78d67b5dcfc18fad6e076356f10b2fb91bb8577320a")
         let Ry = BigInt("0xc1f3dd157fc5e9a7b96461723a20f28f12917ceca4a2c59d59c8d3adf5681cc9")
         try {
-            await instance.vote(m, serverSig, ownerSig, [Rx, Ry], {gas: 30000000})
+            await instance.vote(m, "0x01", "0x02", [Rx, Ry], {gas: 30000000})
             assert.fail("This should be failed...");
         } catch (e) {
             assert.equal(e.message, "Returned error: Exceeds block gas limit -- Reason given: Verify went wrong: x.");
@@ -235,6 +233,28 @@ contract("Ballot:: vote", function (accounts) {
         await truffleAssert.reverts(
             instance2.vote("0x00", "0x01", "0x02", ["0x03", "0x04"]),
             "Vote is allowed at Ballot is OPEN."
+        );
+    });
+
+    it("is_vote_reverts_on_duplicated_server_sig", async () => {
+        let m = web3.utils.fromUtf8("0")
+        let serverSig = BigInt("0x11e7b80d6e93e4e05046ceeecf7d455df4a5979ce4d591745cf271db6b32aea3")
+
+        // act, assert: check revert when not OPEN status
+        await truffleAssert.reverts(
+            instance.vote(m, serverSig, "0x02", ["0x03", "0x04"]),
+            "The server signature has already been used."
+        );
+    });
+
+    it("is_vote_reverts_on_duplicated_owner_sig", async () => {
+        let m = web3.utils.fromUtf8("0")
+        let ownerSig = BigInt("0xc466193572e1b5d2e63f503b69060b277055dbe1cb475819df4c282e9d68000a")
+
+        // act, assert: check revert when not OPEN status
+        await truffleAssert.reverts(
+            instance.vote(m, "0x01", ownerSig, ["0x03", "0x04"]),
+            "The owner signature has already been used."
         );
     });
 })

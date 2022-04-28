@@ -91,5 +91,13 @@ contract Groups {
         groupBox.group.approveGroupAuthentication(_approverDid);
     }
 
+    function getRequesterList(string memory _groupId) external view returns(Group.Requester[] memory requesters_){
+        GroupBox memory groupBox = groups[_groupId];
+        requesters_ = groupBox.group.getRequesterList();
+    }
 
+    function getMemberStatus(string memory _groupId, bytes32 _userDid) external view returns(bool){
+        GroupBox memory groupBox = groups[_groupId];
+        return groupBox.group.getMember(_userDid);
+    }
 }

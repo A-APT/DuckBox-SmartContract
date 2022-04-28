@@ -41,12 +41,28 @@ contract Group{
         requesters_ = requesters;
     }
 
+    function getMember(bytes32 _userDid) external view returns(bool){
+        return members[_userDid];
+    }
+
     //Request to join a group
     function requestMember(bytes32 _userDid) onlyValidGroup external{
         require(
             members[_userDid] == false,
             "Already request Member"
         );
+
+        bool flag = false;
+
+        for(uint i = 0; i<requesters.length; i++){
+            if(requesters[i].did == _userDid){
+                flag = true;
+                break;
+            }
+        }
+
+        require(flag == false, "Already request Member");
+
         requesters.push(Requester({
                 did: _userDid,
                 isValid: false
@@ -90,7 +106,7 @@ contract Group{
         requesters.pop();
     }
 
-    function getRequesterVaild(uint index) external view returns(bool){
+     function getRequesterVaild(uint index) external view returns(bool){
         return requesters[index].isValid;
     }
 

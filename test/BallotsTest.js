@@ -12,7 +12,6 @@ contract("Ballots", function (accounts) {
     let startTime = Math.floor(Date.now() / 1000) + 5;
     let endTime = startTime + 10;
     let candidates = ["candidate1", "candidate2"];
-    let voters = [ethers.utils.formatBytes32String("voter1"), ethers.utils.formatBytes32String("voter2")];
     let chairpersonDid = ethers.utils.formatBytes32String("chairpersonDid");
     let chairperson = accounts[1];
 
@@ -31,7 +30,7 @@ contract("Ballots", function (accounts) {
         // act
         await truffleAssert.reverts(
             instance.registerBallot(
-                chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime, voters, 
+                chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime,
                 {from: chairperson}
             ),
             "faild to transfer ether"
@@ -45,7 +44,7 @@ contract("Ballots", function (accounts) {
 
         // act
         await instance.registerBallot(
-            chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime, voters,
+            chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime,
             {from: chairperson}
         );
         await instance.getBallot(ballotId);
@@ -63,7 +62,7 @@ contract("Ballots", function (accounts) {
         // act & assert
         await truffleAssert.reverts(
             instance.registerBallot(
-                chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime, voters, 
+                chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime,
                 {from: chairperson}
             ),
             "Already registered ballot (id)."

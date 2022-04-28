@@ -10,11 +10,6 @@ contract Ballot {
         CLOSE
     }
 
-    struct Voter {
-        bool right;
-        bool voted;
-    }
-
     struct Candidate {
         string name;
         uint voteCount;
@@ -28,7 +23,6 @@ contract Ballot {
     uint256 public publicKeyX;
     uint256 public publicKeyY;
 
-    mapping(bytes32 => Voter) public voters; // key is did
     Candidate[] private candidates;
 
     mapping(uint256 => bool) public serverSig;  // Avoiding Double Voting
@@ -41,8 +35,7 @@ contract Ballot {
         string[] memory _candidateNames,
         bool _isOfficial,
         uint256 _startTime, // milliseconds
-        uint256 _endTime, // milliseconds
-        bytes32[] memory _voters
+        uint256 _endTime // milliseconds
     ) {
         require(
             _startTime < _endTime && block.timestamp < _endTime,
@@ -62,16 +55,6 @@ contract Ballot {
                 name: _candidateNames[i],
                 voteCount: 0
             }));
-        }
-
-        /// Give voters the right to vote
-        // give rights if official ballot, else discard 'voters'
-        if (isOfficial) {
-            for (uint i=0; i<_voters.length; i++) {
-                bytes32 newVoter = _voters[i];
-                voters[newVoter].right = true; // give right
-                // voters[newVoter].voted = false; // default is false
-            }
         }
 
         /// Initialize BallotStatus

@@ -3,7 +3,6 @@ const ballot = artifacts.require("Ballot");
 const ethers = require('ethers');
 
 const candidates = ["candidate1", "candidate2"];
-const voters = [ethers.utils.formatBytes32String("voter1"), ethers.utils.formatBytes32String("voter2")];
 const REGISTERED = 0;
 const OPEN = 1;
 const CLOSE = 2;
@@ -16,7 +15,7 @@ contract("Ballot_official", function (accounts) {
     let endTime = startTime + 40;
     it("is_constructor_works_well", async function () {
         // get instance first
-        instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters); // official ballot
+        instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime); // official ballot
 
         // assert
         let chairperson = await instance.chairperson();
@@ -25,12 +24,6 @@ contract("Ballot_official", function (accounts) {
         assert.equal(await instance.isOfficial(), true);
         assert.equal(await instance.startTime(), startTime);
         assert.equal(await instance.endTime(), endTime);
-
-        for (const voter of voters) {
-            let v = await instance.voters(voter)
-            assert.equal(v.right, true)
-            assert.equal(v.voted, false)
-        }
     });
 
     it("is_candidates_not_works_well", async () => {
@@ -73,7 +66,7 @@ contract("Ballot_official", function (accounts) {
 
     it("is_open_reverts_not_on_REGISTRED", async () => {
         // arrange
-        let tempInstance = await ballot.deployed(candidates, true, Date.now() + 10, Date.now() + 100, voters); // official ballot
+        let tempInstance = await ballot.deployed(candidates, true, Date.now() + 10, Date.now() + 100); // official ballot
         let notOwner = accounts[1];
 
         // act, assert: check revert when not on REGISTERED status
@@ -131,7 +124,7 @@ contract("Ballot_status", function (accounts) {
         // arrange & act
         let startTime = Math.floor(Date.now() / 1000) - 10;
         let endTime = Math.floor(Date.now() / 1000) + 10;
-        let instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters);
+        let instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime);
 
         // assert
         let status = await instance.status();
@@ -145,7 +138,7 @@ contract("Ballot_status", function (accounts) {
 
         // act & assert
         try {
-            await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters);
+            await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime);
             assert.fail("This should be failed...");
         } catch (e) {
             assert.equal(e.message, "Returned error: base fee exceeds gas limit -- Reason given: The start time must be earlier than the end time..");
@@ -159,7 +152,7 @@ contract("Ballot_status", function (accounts) {
 
         // act & assert
         try {
-            await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters);
+            await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime);
             assert.fail("This should be failed...");
         } catch (e) {
             assert.equal(e.message, "Returned error: base fee exceeds gas limit -- Reason given: The start time must be earlier than the end time..");
@@ -170,7 +163,7 @@ contract("Ballot_status", function (accounts) {
         // arrange
         let startTime = Math.floor(Date.now() / 1000) + 100;
         let endTime = startTime + 200;
-        let instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters);
+        let instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime);
 
         // assert
         await truffleAssert.reverts(
@@ -188,7 +181,7 @@ contract("Ballot_community", function (accounts) {
     it("is_constructor_works_well", async function () {
         // arrange
         // get instance first
-        instance = await ballot.new(publicKeyX, publicKeyY, candidates, false, startTime, endTime, voters);
+        instance = await ballot.new(publicKeyX, publicKeyY, candidates, false, startTime, endTime);
 
         // assert
         let chairperson = await instance.chairperson();
@@ -197,12 +190,6 @@ contract("Ballot_community", function (accounts) {
         assert.equal(await instance.isOfficial(), false);
         assert.equal(await instance.startTime(), startTime);
         assert.equal(await instance.endTime(), endTime);
-
-        // check voters info is discarded - since this is community ballot
-        for (const voter of voters) {
-            let v = await instance.voters(voter);
-            assert.equal(v.right, false);
-        }
     });
 });
 
@@ -213,7 +200,7 @@ contract("Ballot:: vote", function (accounts) {
 
     it("is_vote_works_well", async function () {
         // get instance first
-        instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime, voters); // official ballot;
+        instance = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime, endTime); // official ballot;
         let m = web3.utils.fromUtf8("0")
         let serverSig = BigInt("0x11e7b80d6e93e4e05046ceeecf7d455df4a5979ce4d591745cf271db6b32aea3")
         let ownerSig = BigInt("0xc466193572e1b5d2e63f503b69060b277055dbe1cb475819df4c282e9d68000a")
@@ -234,7 +221,7 @@ contract("Ballot:: vote", function (accounts) {
     })
 
     it("is_vote_reverts_not_on_open", async () => {
-        let instance2 = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime + 20000, endTime, voters); // official ballot;
+        let instance2 = await ballot.new(publicKeyX, publicKeyY, candidates, true, startTime + 20000, endTime); // official ballot;
 
         // act, assert: check revert when not OPEN status
         await truffleAssert.reverts(

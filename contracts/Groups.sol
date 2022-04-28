@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0 <0.7.0;
+pragma solidity ^0.8.0;
 import "./Group.sol";
 
 contract Groups {
@@ -13,7 +13,7 @@ contract Groups {
     address public owner;
     address public didAddress;
 
-    constructor(address _didAddress) public {
+    constructor(address _didAddress) {
         owner = tx.origin;
         didAddress = _didAddress;
     }

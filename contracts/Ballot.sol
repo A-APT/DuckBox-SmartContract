@@ -10,11 +10,6 @@ contract Ballot {
         CLOSE
     }
 
-    struct Voter {
-        bool right;
-        bool voted;
-    }
-
     struct Candidate {
         string name;
         uint voteCount;
@@ -28,8 +23,10 @@ contract Ballot {
     uint256 public publicKeyX;
     uint256 public publicKeyY;
 
-    mapping(bytes32 => Voter) public voters; // key is did
     Candidate[] private candidates;
+
+    mapping(uint256 => bool) public serverSig;  // Avoiding Double Voting
+    mapping(uint256 => bool) public ownerSig;   // Avoiding Double Voting
 
     /// Create new ballot
     constructor(
@@ -38,8 +35,7 @@ contract Ballot {
         string[] memory _candidateNames,
         bool _isOfficial,
         uint256 _startTime, // milliseconds
-        uint256 _endTime, // milliseconds
-        bytes32[] memory _voters
+        uint256 _endTime // milliseconds
     ) {
         require(
             _startTime < _endTime && block.timestamp < _endTime,
@@ -59,16 +55,6 @@ contract Ballot {
                 name: _candidateNames[i],
                 voteCount: 0
             }));
-        }
-
-        /// Give voters the right to vote
-        // give rights if official ballot, else discard 'voters'
-        if (isOfficial) {
-            for (uint i=0; i<_voters.length; i++) {
-                bytes32 newVoter = _voters[i];
-                voters[newVoter].right = true; // give right
-                // voters[newVoter].voted = false; // default is false
-            }
         }
 
         /// Initialize BallotStatus
@@ -101,7 +87,14 @@ contract Ballot {
         else revert("Before the start time.");
     }
 
-    function close() external {
+    function close(uint256 _totalNum) external {
+        // Verify the number of signature and vote count is the same
+        uint256 totalNum = 0;
+        for (uint i=0; i<candidates.length; i++) {
+            totalNum = totalNum + candidates[i].voteCount;
+        }
+        require(totalNum == _totalNum, "Number of signature and vote count is not the same");
+
         if(checkTimeForEnd()) status = BallotStatus.CLOSE;
         else revert("Before the end time.");
     }
@@ -119,6 +112,8 @@ contract Ballot {
             status == BallotStatus.OPEN,
             "Vote is allowed at Ballot is OPEN."
         );
+        require(serverSig[_serverSig] == false, "The server signature has already been used.");
+        require(ownerSig[_ownerSig] == false, "The owner signature has already been used.");
 
         // verify signature
         BlindSigSecp256k1.verifySig(_m, _serverSig, R);                             // verify signature of server signature
@@ -127,5 +122,9 @@ contract Ballot {
         // * WHEN array out of bounds: throw automatically and revert all changes
         uint256 m = uint(uint8(_m[0])) - 48;
         candidates[m].voteCount += 1; // weight is always 1
+
+        // Avoiding Double Voting
+        serverSig[_serverSig] = true;
+        ownerSig[_ownerSig] = true;
     }
 }

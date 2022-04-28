@@ -16,19 +16,17 @@ contract Group{
 
     string public groupId;
     GroupStatus public status;
-    address public didAddress;
     
     mapping(bytes32 => bool) public members; //key: user did, value: Requester
     Requester[] public requesters;
 
     event groupAuthCompleted(string groupId);
 
-    constructor(string memory _groupId, bytes32 _ownerDid, address _didAddress) checkDid(_ownerDid) {
+    constructor(string memory _groupId, bytes32 _ownerDid) {
         groupId = _groupId;
         members[_ownerDid] = true;
 
         status = GroupStatus.INVALID;
-        didAddress = _didAddress;
     }
 
     modifier onlyValidGroup{
@@ -38,17 +36,13 @@ contract Group{
         );
         _;
     }
-
-    modifier checkDid(bytes32 _did){
-        (bool success, bytes memory result) = didAddress.call(
-            abi.encodeWithSignature('checkDidValid(address,bytes32)', tx.origin, _did));
-
-        require(success, "faild to transfer ether");
-        _;
+    
+    function getRequesterList() external view returns(Requester[] memory requesters_){
+        requesters_ = requesters;
     }
 
     //Request to join a group
-    function requestMember(bytes32 _userDid) onlyValidGroup checkDid(_userDid) external{
+    function requestMember(bytes32 _userDid) onlyValidGroup external{
         require(
             members[_userDid] == false,
             "Already request Member"
@@ -60,7 +54,7 @@ contract Group{
     }
 
     //mutual authentication
-    function approveMember(bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup checkDid(_approverDid)external{
+    function approveMember(bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup external{
         //Check Approver Permissions
         require(
             members[_approverDid] == true,
@@ -101,7 +95,7 @@ contract Group{
     }
 
     //Withdrawal
-    function exitMember(bytes32 _requesterDid) onlyValidGroup checkDid(_requesterDid) external {
+    function exitMember(bytes32 _requesterDid) onlyValidGroup external {
         //Check if requester is a member of the group
         require(
            members[_requesterDid] == true,
@@ -112,7 +106,7 @@ contract Group{
     }
 
     //group authentication
-    function approveGroupAuthentication(bytes32 _approverDid) checkDid(_approverDid) external{
+    function approveGroupAuthentication(bytes32 _approverDid) external{
         //Check if the group is already approved
         require(
            status != GroupStatus.VALID,
@@ -134,4 +128,5 @@ contract Group{
 
         members[_approverDid] = true;
     }
+
 }

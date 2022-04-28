@@ -17,7 +17,15 @@ contract Ballots {
         owner = tx.origin;
         didAddress = _didAddress;
     }
-    
+
+    modifier onlyOwner {
+        require(
+            owner == tx.origin,
+            "This function is restricted to the contract's owner."
+        );
+        _;
+    }
+
     modifier checkDid(bytes32 _did){
         (bool success, bytes memory result) = didAddress.call(
             abi.encodeWithSignature('checkDidValid(address,bytes32)', tx.origin, _did));
@@ -34,8 +42,7 @@ contract Ballots {
         string[] memory _candidateNames,
         bool _isOfficial,
         uint256 _startTime, // milliseconds
-        uint256 _endTime, // milliseconds
-        bytes32[] memory _voters
+        uint256 _endTime // milliseconds
     ) checkDid(_chairpersonDid) external returns (Ballot){
 
         require(
@@ -44,7 +51,7 @@ contract Ballots {
         );
 
         ballots[_ballotId].isValid = true;
-        ballots[_ballotId].ballot = new Ballot(_publicKeyX, _publicKeyY, _candidateNames, _isOfficial, _startTime, _endTime, _voters);
+        ballots[_ballotId].ballot = new Ballot(_publicKeyX, _publicKeyY, _candidateNames, _isOfficial, _startTime, _endTime);
         ballots[_ballotId].chairpersonDid = _chairpersonDid;
 
         return ballots[_ballotId].ballot;
@@ -57,6 +64,18 @@ contract Ballots {
             "Unregistered ballot (id)."
         );
         return ballotBox.ballot;
+    }
+
+    function open(string memory _ballotId) external {
+        ballots[_ballotId].ballot.open();
+    }
+
+    function close(string memory _ballotId, uint256 _totalNum) onlyOwner external {
+        ballots[_ballotId].ballot.close(_totalNum);
+    }
+
+    function resultOfBallot(string memory _ballotId) external view returns (Ballot.Candidate[] memory candidates_) {
+        candidates_ = ballots[_ballotId].ballot.resultOfBallot();
     }
 
     function vote(

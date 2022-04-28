@@ -9,10 +9,9 @@ contract("Ballots", function (accounts) {
     let didInstance = null;
 
     let ballotId = "ballot id";
-    let startTime = Math.floor(Date.now() / 1000);
-    let endTime = startTime + 100;
+    let startTime = Math.floor(Date.now() / 1000) + 5;
+    let endTime = startTime + 10;
     let candidates = ["candidate1", "candidate2"];
-    let voters = [ethers.utils.formatBytes32String("voter1"), ethers.utils.formatBytes32String("voter2")];
     let chairpersonDid = ethers.utils.formatBytes32String("chairpersonDid");
     let chairperson = accounts[1];
 
@@ -31,7 +30,7 @@ contract("Ballots", function (accounts) {
         // act
         await truffleAssert.reverts(
             instance.registerBallot(
-                chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime, voters, 
+                chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime,
                 {from: chairperson}
             ),
             "faild to transfer ether"
@@ -45,17 +44,25 @@ contract("Ballots", function (accounts) {
 
         // act
         await instance.registerBallot(
-            chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime, voters,
+            chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime,
             {from: chairperson}
         );
         await instance.getBallot(ballotId);
+    });
+
+    it("is_open_works_well", async () => {
+        // wait 5000ms
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        // act
+        await instance.open(ballotId);
     });
 
     it("is_registerBallot_reverts_duplicate_ballot", async () => {
         // act & assert
         await truffleAssert.reverts(
             instance.registerBallot(
-                chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime, voters, 
+                chairpersonDid, publicKeyX, publicKeyY, ballotId, candidates, true, startTime, endTime,
                 {from: chairperson}
             ),
             "Already registered ballot (id)."
@@ -89,5 +96,18 @@ contract("Ballots", function (accounts) {
             instance.vote("invalid ballot id", "0x00", "0x01", "0x02", ["0x03", "0x04"]),
             "Unregistered ballot (id)."
         );
+    });
+
+    it("is_close_and_resultOfBallot_works_well", async () => {
+        // wait 5000ms
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        // act
+        await instance.close(ballotId, 1);
+        let result = await instance.resultOfBallot(ballotId);
+
+        // aseert
+        assert.equal(result.length, 2, "number of candidate is wrong.");
+        assert.equal(result[0].voteCount, 1, "voteCount is wrong.");
     });
 });

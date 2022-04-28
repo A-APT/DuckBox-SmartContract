@@ -15,6 +15,6 @@ module.exports = async function (deployer) {
     await deployer.deploy(blindsig);
     await deployer.link(blindsig, [Ballot, Ballots]);
     await deployer.deploy(DecentralizedId);
-    await deployer.deploy(Ballot, PUBKEYx, PUBKEYy, ["candidate1"], true, startTime, endTime, ["0x11", "0x22"]);
+    await deployer.deploy(Ballot, PUBKEYx, PUBKEYy, ["candidate1"], true, startTime, endTime);
     await deployer.deploy(Ballots, DecentralizedId.address);
 };

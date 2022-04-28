@@ -18,16 +18,24 @@ contract Groups {
         didAddress = _didAddress;
     }
 
+    modifier checkDid(bytes32 _did){
+        (bool success, bytes memory result) = didAddress.call(
+            abi.encodeWithSignature('checkDidValid(address,bytes32)', tx.origin, _did));
+
+        require(success, "faild to transfer ether");
+        _;
+    }
+
     function registerGroup( //by owner
         string memory _groupId, 
         bytes32 _ownerDid
-    ) external{
+    ) checkDid(_ownerDid) external{
         require(
             groups[_groupId].isValid == false,
             "Already registered group"
         );
         groups[_groupId].isValid = true;
-        groups[_groupId].group = new Group(_groupId, _ownerDid, didAddress);
+        groups[_groupId].group = new Group(_groupId, _ownerDid);
         groups[_groupId].leader = _ownerDid;
     }
 
@@ -43,7 +51,7 @@ contract Groups {
     }
 
     //Group function
-    function requestMember(string memory _groupId, bytes32 _userDid) external{
+    function requestMember(string memory _groupId, bytes32 _userDid) checkDid(_userDid) external{
         GroupBox memory groupBox = groups[_groupId];
         require(
             groupBox.isValid == true,
@@ -53,7 +61,7 @@ contract Groups {
         groupBox.group.requestMember(_userDid);
     }
 
-    function approveMember(string memory _groupId, bytes32 _approverDid, bytes32 _requesterDid) external{
+    function approveMember(string memory _groupId, bytes32 _approverDid, bytes32 _requesterDid)  checkDid(_approverDid) external{
         GroupBox memory groupBox = groups[_groupId];
         require(
             groupBox.isValid == true,
@@ -63,7 +71,7 @@ contract Groups {
         groupBox.group.approveMember(_approverDid, _requesterDid);
     }
 
-    function exitMember(string memory _groupId, bytes32 _requesterDid) external{
+    function exitMember(string memory _groupId, bytes32 _requesterDid) checkDid(_requesterDid) external{
         GroupBox memory groupBox = groups[_groupId];
         require(
             groupBox.isValid == true,
@@ -73,7 +81,7 @@ contract Groups {
         groupBox.group.exitMember(_requesterDid);
     }
 
-    function approveGroupAuthentication(string memory _groupId, bytes32 _approverDid) external{
+    function approveGroupAuthentication(string memory _groupId, bytes32 _approverDid) checkDid(_approverDid) external{
         GroupBox memory groupBox = groups[_groupId];
         require(
             groupBox.isValid == true,
@@ -82,4 +90,6 @@ contract Groups {
 
         groupBox.group.approveGroupAuthentication(_approverDid);
     }
+
+
 }

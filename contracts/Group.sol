@@ -17,7 +17,7 @@ contract Group{
     string public groupId;
     GroupStatus public status;
     
-    mapping(bytes32 => bool) public members; //key: user did, value: Requester
+    mapping(bytes32 => bool) public members; //key: user did, value: boolean
     Requester[] public requesters;
 
     event groupAuthCompleted(string groupId);
@@ -49,7 +49,7 @@ contract Group{
     function requestMember(bytes32 _userDid) onlyValidGroup external{
         require(
             members[_userDid] == false,
-            "Already request Member"
+            "Already group Member"
         );
 
         bool flag = false;
@@ -61,7 +61,7 @@ contract Group{
             }
         }
 
-        require(flag == false, "Already request Member");
+        require(flag == false, "Already group Member");
 
         requesters.push(Requester({
                 did: _userDid,

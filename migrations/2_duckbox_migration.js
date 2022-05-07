@@ -10,7 +10,7 @@ module.exports = async function (deployer){
     await deployer.deploy(blindsig);
     await deployer.link(blindsig, [Ballots]);
 
-    await deployer.deploy(DecentralizedId)
-    await deployer.deploy(Groups, DecentralizedId.address)
+    await deployer.deploy(DecentralizedId);
+    await deployer.deploy(Groups, DecentralizedId.address);
     await deployer.deploy(Ballots, DecentralizedId.address);
 };

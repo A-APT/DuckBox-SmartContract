@@ -8,28 +8,25 @@ contract Group{
         WAITING,
         VALID
     }
-    
-    enum MemberStatus{
-        INVALID,
-        REQUEST,
-        WAITING,
-        VALID
+
+    struct Requester{
+        bytes32 did;
+        bool isValid;
     }
 
     string public groupId;
     GroupStatus public status;
-    address public didAddress;
     
-    mapping(bytes32 => MemberStatus) public members; //key: user did, value: Requester
+    mapping(bytes32 => bool) public members; //key: user did, value: boolean
+    Requester[] public requesters;
 
     event groupAuthCompleted(string groupId);
 
-    constructor(string memory _groupId, bytes32 _ownerDid, address _didAddress) checkDid(_ownerDid) {
+    constructor(string memory _groupId, bytes32 _ownerDid) {
         groupId = _groupId;
-        members[_ownerDid] = MemberStatus.VALID;
+        members[_ownerDid] = true;
 
         status = GroupStatus.INVALID;
-        didAddress = _didAddress;
     }
 
     modifier onlyValidGroup{
@@ -39,50 +36,85 @@ contract Group{
         );
         _;
     }
+    
+    function getRequesterList() external view returns(Requester[] memory requesters_){
+        requesters_ = requesters;
+    }
 
-    modifier checkDid(bytes32 _did){
-        (bool success, bytes memory result) = didAddress.call(
-            abi.encodeWithSignature('checkDidValid(address,bytes32)', tx.origin, _did));
-
-        require(success, "faild to transfer ether");
-        _;
+    function getMember(bytes32 _userDid) external view returns(bool){
+        return members[_userDid];
     }
 
     //Request to join a group
-    function requestMember(bytes32 _userDid) onlyValidGroup checkDid(_userDid) external{
+    function requestMember(bytes32 _userDid) onlyValidGroup external{
         require(
-            members[_userDid] == MemberStatus.INVALID,
-            "Already request Member"
+            members[_userDid] == false,
+            "Already group Member"
         );
 
-        members[_userDid] = MemberStatus.REQUEST;
+        bool flag = false;
+
+        for(uint i = 0; i<requesters.length; i++){
+            if(requesters[i].did == _userDid){
+                flag = true;
+                break;
+            }
+        }
+
+        require(flag == false, "Already group Member");
+
+        requesters.push(Requester({
+                did: _userDid,
+                isValid: false
+            }));
     }
 
     //mutual authentication
-    function approveMember(bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup checkDid(_approverDid)external{
+    function approveMember(bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup external{
         //Check Approver Permissions
         require(
-            members[_approverDid] == MemberStatus.VALID,
+            members[_approverDid] == true,
             "No permission"
         );
         //Check if requester is already a member of the group
         require(
-           members[_requesterDid] == MemberStatus.REQUEST ||  members[_requesterDid] == MemberStatus.WAITING,
+           members[_requesterDid] == false,
             "Already group member"
         );
         
-        if(members[_requesterDid] == MemberStatus.REQUEST){
-            members[_requesterDid] = MemberStatus.WAITING;
-        }else if(members[_requesterDid] == MemberStatus.WAITING){
-            members[_requesterDid] = MemberStatus.VALID;
+        for(uint i = 0; i<requesters.length; i++){
+            if(requesters[i].did == _requesterDid){
+                if(requesters[i].isValid == false){
+                    requesters[i].isValid = true;
+                }else if(requesters[i].isValid == true){
+                    //add mapping
+                    members[_requesterDid] = true;
+                    //delete array
+                    remove(i);
+                }
+                break;
+            }
         }
     }
 
+    function remove(uint index) internal {
+        if (index >= requesters.length) return;
+
+        for (uint i = index; i<requesters.length-1; i++){
+            requesters[i] = requesters[i+1];
+        }
+        requesters.pop();
+    }
+
+     function getRequesterVaild(uint index) external view returns(bool){
+        return requesters[index].isValid;
+    }
+
     //Withdrawal
-    function exitMember(bytes32 _requesterDid) onlyValidGroup checkDid(_requesterDid) external {
+    function exitMember(bytes32 _requesterDid) onlyValidGroup external {
         //Check if requester is a member of the group
         require(
-           members[_requesterDid] == MemberStatus.VALID,
+           members[_requesterDid] == true,
             "Not member"
         );
 
@@ -90,7 +122,7 @@ contract Group{
     }
 
     //group authentication
-    function approveGroupAuthentication(bytes32 _approverDid) checkDid(_approverDid) external{
+    function approveGroupAuthentication(bytes32 _approverDid) external{
         //Check if the group is already approved
         require(
            status != GroupStatus.VALID,
@@ -99,7 +131,7 @@ contract Group{
 
         //Check for duplicate approvers
         require(
-           members[_approverDid] != MemberStatus.VALID,
+           members[_approverDid] != true,
             "can not approve"
         );
         
@@ -110,6 +142,7 @@ contract Group{
             emit groupAuthCompleted(groupId); // emit event for notify group status is changed to VALID
         }
 
-        members[_approverDid] = MemberStatus.VALID;
+        members[_approverDid] = true;
     }
+
 }

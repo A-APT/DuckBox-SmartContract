@@ -15,17 +15,6 @@ contract Survey {
         uint voteCount;
     }
 
-    enum QuestionType {
-        MULTI,
-        LIKERT
-    }
-
-    struct Question {
-        QuestionType questionType;
-        string question;
-        Candidate[] candidates;
-    }
-
     SurveyStatus public status;
     bool public isOfficial;
     address public chairperson; // or group
@@ -34,7 +23,7 @@ contract Survey {
     uint256 public publicKeyX;
     uint256 public publicKeyY;
 
-    Question[] private questions;
+    Candidate[][] private questions;
 
     mapping(uint256 => bool) public serverSig;  // Avoiding Double Voting
     mapping(uint256 => bool) public ownerSig;   // Avoiding Double Voting
@@ -43,7 +32,8 @@ contract Survey {
     constructor(
         uint256 _publicKeyX,
         uint256 _publicKeyY,
-        Question[] memory _questions,
+        uint[] memory _candidateNum, // each question
+        string[] memory _candidateNames, // for all questions
         bool _isOfficial,
         uint256 _startTime, // milliseconds
         uint256 _endTime // milliseconds
@@ -61,19 +51,18 @@ contract Survey {
         publicKeyY = _publicKeyY;
 
         /// Register questions and candidates
-        // questions = _questions; // not yet supported (memory to storage)
-        questions = new Question[](_questions.length);
-        for (uint i=0; i<_questions.length; i++) {
-            questions[i].questionType = _questions[i].questionType;
-            questions[i].question = _questions[i].question;
-
-            for (uint j=0; j<_questions[i].candidates.length; j++) {
-                questions[i].candidates.push(Candidate({
-                    name: _questions[i].candidates[j].name,
+        uint questionNum = _candidateNum.length;
+        uint c = 0;
+        for (uint i=0; i<questionNum; i++) {
+            uint num = _candidateNum[i];
+            for (uint j=0; j<num; j++) {
+                questions[i].push(Candidate({
+                    name: _candidateNames[c+j],
                     voteCount: 0
                 }));
             }
-        } /// errors: memory to storage not yet supported.
+            c = c + num;
+        }
 
         /// Initialize SurveyStatus
         status = SurveyStatus.REGISTERED;
@@ -108,8 +97,8 @@ contract Survey {
     function close(uint256 _totalNum) external {
         // Verify the number of signature and vote count is the same
         uint256 totalNum = 0;
-        for (uint j=0; j<questions[0].candidates.length; j++) {
-            totalNum = totalNum + questions[0].candidates[j].voteCount; // only count first questions' answer number
+        for (uint j=0; j<questions[0].length; j++) { // only count first questions' answer number
+            totalNum = totalNum + questions[0][j].voteCount;
         }
         require(totalNum == _totalNum, "Number of signature and vote count is not the same");
 
@@ -117,7 +106,7 @@ contract Survey {
         else revert("Before the end time.");
     }
 
-    function resultOfBallot() external view returns (Question[] memory questions_) {
+    function resultOfSurvey() external view returns (Candidate[][] memory questions_) {
         require(
             status == SurveyStatus.CLOSE,
             "This function is restricted only at CLOSE status."
@@ -140,7 +129,7 @@ contract Survey {
         // * WHEN array out of bounds: throw automatically and revert all changes
         for (uint i=0; i<questions.length; i++) {
             uint256 m = uint(uint8(_m[i])) - 48; // 0~9
-            questions[i].candidates[m].voteCount += 1; // weight is always 1
+            questions[i][m].voteCount += 1; // weight is always 1
         }
 
         // Avoiding Double Voting

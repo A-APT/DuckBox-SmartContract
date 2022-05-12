@@ -21,6 +21,7 @@ contract Group{
     Requester[] public requesters;
 
     event groupAuthCompleted(string groupId);
+    event memberAuthCompleted(string groupId, bytes32 did);
 
     constructor(string memory _groupId, bytes32 _ownerDid) {
         groupId = _groupId;
@@ -91,6 +92,8 @@ contract Group{
                     members[_requesterDid] = true;
                     //delete array
                     remove(i);
+                    // emit event
+                    emit memberAuthCompleted(groupId, _requesterDid);
                 }
                 break;
             }

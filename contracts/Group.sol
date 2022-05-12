@@ -71,7 +71,7 @@ contract Group{
     }
 
     //mutual authentication
-    function approveMember(bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup external{
+    function approveMember(bytes32 _approverDid, bytes32 _requesterDid) onlyValidGroup external returns (bool) {
         //Check Approver Permissions
         require(
             members[_approverDid] == true,
@@ -98,6 +98,8 @@ contract Group{
                 break;
             }
         }
+
+        return members[_requesterDid];
     }
 
     function remove(uint index) internal {
@@ -125,7 +127,7 @@ contract Group{
     }
 
     //group authentication
-    function approveGroupAuthentication(bytes32 _approverDid) external{
+    function approveGroupAuthentication(bytes32 _approverDid) external returns (bool) {
         //Check if the group is already approved
         require(
            status != GroupStatus.VALID,
@@ -137,15 +139,17 @@ contract Group{
            members[_approverDid] != true,
             "can not approve"
         );
-        
+
+        members[_approverDid] = true;
+
         if(status == GroupStatus.INVALID){
             status = GroupStatus.WAITING;
         }else if(status == GroupStatus.WAITING){
             status = GroupStatus.VALID;
             emit groupAuthCompleted(groupId); // emit event for notify group status is changed to VALID
+            return true;
         }
-
-        members[_approverDid] = true;
+        return false;
     }
 
 }

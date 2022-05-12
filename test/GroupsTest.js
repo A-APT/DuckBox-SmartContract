@@ -67,11 +67,14 @@ contract("Groups", function (accounts) {
         await didInstance.registerId(approver[0], approverDid[0]);
 
         //act
-        await instance.approveGroupAuthentication(groupID, approverDid[0], {from: approver[0]});
+        let tx = await instance.approveGroupAuthentication(groupID, approverDid[0], {from: approver[0]});
 
         //assert
         let status = await instance.getMemberStatus(groupID, approverDid[0]);
         assert.equal(status, true);
+
+        // check event not emitted
+        truffleAssert.eventNotEmitted(tx, 'groupAuthCompleted');
     });
 
     it("requestMember_reverts_befor_join_did", async () => {
@@ -98,11 +101,16 @@ contract("Groups", function (accounts) {
         await didInstance.registerId(approver[1], approverDid[1]);
 
         //act
-        await instance.approveGroupAuthentication(groupID, approverDid[1], {from: approver[1]});
+        let tx = await instance.approveGroupAuthentication(groupID, approverDid[1], {from: approver[1]});
     
         //assert
         let status = await instance.getMemberStatus(groupID, approverDid[1]);
         assert.equal(status, true);
+
+        // check event was emitted
+        truffleAssert.eventEmitted(tx, 'groupAuthCompleted', (ev) => {
+            return ev.groupId === groupID;
+        });
     });
 
     it("requestMember_works_well", async () => {
@@ -125,17 +133,20 @@ contract("Groups", function (accounts) {
 
     it("approveMember_work_well", async () => {
         // act & assert
-        await instance.approveMember(groupID, approverDid[0], userDid[0], {from: approver[0]})
+        let tx = await instance.approveMember(groupID, approverDid[0], userDid[0], {from: approver[0]})
     
         //assert
         let list = await instance.getRequesterList(groupID);
         assert.equal(list[0][0], userDid[0]);
         assert.equal(list[0][1], true);
+
+        // check event not emitted
+        truffleAssert.eventNotEmitted(tx, 'memberAuthCompleted');
     });
 
     it("approveMember_work_well2", async () => {
         // act & assert
-        await instance.approveMember(groupID, approverDid[1], userDid[0], {from: approver[1]})
+        let tx = await instance.approveMember(groupID, approverDid[1], userDid[0], {from: approver[1]})
     
         //assert
         let list = await instance.getRequesterList(groupID);
@@ -143,6 +154,11 @@ contract("Groups", function (accounts) {
 
         let status = await instance.getMemberStatus(groupID, userDid[0]);
         assert.equal(status, true);
+
+        // check event was emitted
+        truffleAssert.eventEmitted(tx, 'memberAuthCompleted', (ev) => {
+            return ev.groupId === groupID && ev.did === userDid[0];
+        });
     });
 
 

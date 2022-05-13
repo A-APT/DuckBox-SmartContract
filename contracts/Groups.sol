@@ -13,6 +13,9 @@ contract Groups {
     address public owner;
     address public didAddress;
 
+    event groupAuthCompleted(string groupId);
+    event memberAuthCompleted(string groupId, bytes32 did);
+
     constructor(address _didAddress) {
         owner = tx.origin;
         didAddress = _didAddress;
@@ -68,7 +71,8 @@ contract Groups {
             "Unregistered group (id)."
         );
 
-        groupBox.group.approveMember(_approverDid, _requesterDid);
+        bool result = groupBox.group.approveMember(_approverDid, _requesterDid);
+        if(result) emit memberAuthCompleted(_groupId, _requesterDid);
     }
 
     function exitMember(string memory _groupId, bytes32 _requesterDid) checkDid(_requesterDid) external{
@@ -88,7 +92,8 @@ contract Groups {
             "Unregistered group (id)."
         );
 
-        groupBox.group.approveGroupAuthentication(_approverDid);
+        bool result = groupBox.group.approveGroupAuthentication(_approverDid);
+        if(result) emit groupAuthCompleted(_groupId);
     }
 
     function getRequesterList(string memory _groupId) external view returns(Group.Requester[] memory requesters_){

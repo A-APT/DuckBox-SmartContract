@@ -95,11 +95,14 @@ contract("Group", function (accounts) {
 
     it("Approved_to_join_the_group_by_1_person", async() => {
         //act
-        await instance.approveMember(approverDid[0], userDid[0], {from: approver[0]});
+        let tx = await instance.approveMember(approverDid[0], userDid[0], {from: approver[0]});
     
         //check
         let status = await instance.getRequesterVaild(0);
         assert.equal(status, true, "not equal status");
+
+        // check event was not emitted
+        truffleAssert.eventNotEmitted(tx, 'memberAuthCompleted');
     });
 
     it("Approved_to_join_the_group_if_the_approver_does_not_have_the_authority", async() => {
@@ -111,11 +114,16 @@ contract("Group", function (accounts) {
 
     it("Approved_to_join_the_group_by_2_person", async() => {
         //act
-        await instance.approveMember(approverDid[1], userDid[0], {from: approver[1]});
+        let tx = await instance.approveMember(approverDid[1], userDid[0], {from: approver[1]});
 
         //check
         let status = await instance.members(userDid[0]);
         assert.equal(status, true, "not equal status");
+
+        // check event was emitted
+        truffleAssert.eventEmitted(tx, 'memberAuthCompleted', (ev) => {
+            return ev.groupId === groupID && ev.did === userDid[0];
+        });
     });
 
     it("Approved_to_join_the_group_if_already_approved", async() => {

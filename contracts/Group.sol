@@ -12,6 +12,8 @@ contract Group{
     struct Requester{
         bytes32 did;
         bool isValid;
+        string name;
+        string email;
     }
 
     string public groupId;
@@ -47,7 +49,7 @@ contract Group{
     }
 
     //Request to join a group
-    function requestMember(bytes32 _userDid) onlyValidGroup external{
+    function requestMember(bytes32 _userDid, string memory _name, string memory _email) onlyValidGroup external{
         require(
             members[_userDid] == false,
             "Already group Member"
@@ -66,7 +68,9 @@ contract Group{
 
         requesters.push(Requester({
                 did: _userDid,
-                isValid: false
+                isValid: false,
+                name: _name,
+                email: _email
             }));
     }
 

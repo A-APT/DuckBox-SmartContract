@@ -54,14 +54,14 @@ contract Groups {
     }
 
     //Group function
-    function requestMember(string memory _groupId, bytes32 _userDid) checkDid(_userDid) external{
+    function requestMember(string memory _groupId, bytes32 _userDid, string memory _name, string memory _email) checkDid(_userDid) external{
         GroupBox memory groupBox = groups[_groupId];
         require(
             groupBox.isValid == true,
             "Unregistered group (id)."
         );
 
-        groupBox.group.requestMember(_userDid);
+        groupBox.group.requestMember(_userDid, _name, _email);
     }
 
     function approveMember(string memory _groupId, bytes32 _approverDid, bytes32 _requesterDid)  checkDid(_approverDid) external{

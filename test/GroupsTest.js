@@ -80,7 +80,7 @@ contract("Groups", function (accounts) {
     it("requestMember_reverts_befor_join_did", async () => {
         // act & assert
         await truffleAssert.reverts(
-            instance.requestMember(groupID, userDid[0], {from: user[0]}),
+            instance.requestMember(groupID, userDid[0], "name", "email", {from: user[0]}),
             "faild to transfer ether"
         );
     });
@@ -91,7 +91,7 @@ contract("Groups", function (accounts) {
 
         // act & assert
         await truffleAssert.reverts(
-            instance.requestMember(groupID, userDid[0], {from: user[0]}),
+            instance.requestMember(groupID, userDid[0], "name", "email", {from: user[0]}),
             "restricted to the Valid group"
         );
     });
@@ -115,7 +115,7 @@ contract("Groups", function (accounts) {
 
     it("requestMember_works_well", async () => {
         //act
-        await instance.requestMember(groupID, userDid[0], {from: user[0]});
+        await instance.requestMember(groupID, userDid[0], "name", "email", {from: user[0]});
 
         //assert
         let list = await instance.getRequesterList(groupID);

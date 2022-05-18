@@ -31,7 +31,7 @@ contract("Group", function (accounts) {
 
     it("Request_to_join_before_completing_group_authentication", async () => {
         await truffleAssert.reverts(
-            instance.requestMember(userDid[0]),
+            instance.requestMember(userDid[0], "name", "email"),
             "This function is restricted to the Valid group"
         );
     });
@@ -86,7 +86,7 @@ contract("Group", function (accounts) {
 
     it("Request_to_join_a_group", async () => {
         //act
-        await instance.requestMember(userDid[0], {from: user[0]});
+        await instance.requestMember(userDid[0], "name", "email", {from: user[0]});
 
         //check
         let status = await instance.getRequesterVaild(0);

@@ -99,12 +99,16 @@ contract Ballot {
         else revert("Before the end time.");
     }
 
-    function resultOfBallot() external view returns (Candidate[] memory candidates_) {
+    function resultOfBallot() external view returns (uint[] memory) {
         require(
             status == BallotStatus.CLOSE,
             "This function is restricted only at CLOSE status."
         );
-        candidates_ = candidates;
+        uint[] memory result = new uint[](candidates.length);
+        for (uint i=0; i<candidates.length; i++) {
+            result[i] = candidates[i].voteCount;
+        }
+        return result;
     }
 
     function vote(bytes memory _m, uint256 _serverSig, uint256 _ownerSig, uint256[2] memory R) external {

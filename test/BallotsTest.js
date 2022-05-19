@@ -108,6 +108,6 @@ contract("Ballots", function (accounts) {
 
         // aseert
         assert.equal(result.length, 2, "number of candidate is wrong.");
-        assert.equal(result[0].voteCount, 1, "voteCount is wrong.");
+        assert.equal(result[0], 1, "voteCount is wrong.");
     });
 });

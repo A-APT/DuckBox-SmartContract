@@ -74,8 +74,8 @@ contract Ballots {
         ballots[_ballotId].ballot.close(_totalNum);
     }
 
-    function resultOfBallot(string memory _ballotId) external view returns (Ballot.Candidate[] memory candidates_) {
-        candidates_ = ballots[_ballotId].ballot.resultOfBallot();
+    function resultOfBallot(string memory _ballotId) external view returns (uint[] memory) {
+        return ballots[_ballotId].ballot.resultOfBallot();
     }
 
     function vote(

@@ -114,8 +114,8 @@ contract("Ballot_official", function (accounts) {
         assert.equal(status, CLOSE); // check status is CLOSE
 
         assert.equal(result.length, 2, "number of candidate is wrong.");
-        assert.equal(result[0].name, candidates[0], "candidate name is wrong.");
-        assert.equal(result[0].voteCount, 1, "voteCount is wrong.");
+        //assert.equal(result[0].name, candidates[0], "candidate name is wrong.");
+        assert.equal(result[0], 1, "voteCount is wrong.");
     });
 });
 

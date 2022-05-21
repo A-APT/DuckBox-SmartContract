@@ -96,9 +96,25 @@ contract Groups {
         if(result) emit groupAuthCompleted(_groupId);
     }
 
-    function getRequesterList(string memory _groupId) external view returns(Group.Requester[] memory requesters_){
+    function getRequesterList(string memory _groupId) external view returns(bytes32[] memory did, bool[] memory isValid, string[] memory name, string[] memory email){
         GroupBox memory groupBox = groups[_groupId];
-        requesters_ = groupBox.group.getRequesterList();
+        Group.Requester[] memory requesters = groupBox.group.getRequesterList();
+
+        bytes32[] memory _did = new bytes32[](requesters.length);
+        bool[] memory _isValid = new bool[](requesters.length);
+        string[] memory _name = new string[](requesters.length);
+        string[] memory _email = new string[](requesters.length);
+        
+        for(uint i = 0; i< requesters.length; i++){
+            _did[i] = requesters[i].did;
+            _isValid[i] = requesters[i].isValid;
+            _name[i] = requesters[i].name;
+            _email[i] = requesters[i].email;
+        }
+        did = _did;
+        isValid = _isValid;
+        name = _name;
+        email = _email;
     }
 
     function getMemberStatus(string memory _groupId, bytes32 _userDid) external view returns(bool){
